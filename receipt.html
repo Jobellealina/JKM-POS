@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PrintExpress - Printing Services Receipt</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.18/dist/sweetalert2.min.css">
+<style>
+:root{
+  --primary:#9bd6f3;
+  --black:#111;
+  --green:#28a745;
+  --red:#f56473;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Segoe UI',sans-serif;
+  background:#f5f5f5;
+  color:var(--black);
+}
+.container-wrapper{
+  display:flex;
+  gap:20px;
+  max-width:1200px;
+  margin:20px auto;
+}
+.left-side, .right-side{
+  flex:1;
+}
+.container{
+  padding:15px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background: url('HEADER.jpg') center/cover no-repeat; /* default background */
+  color:#fff;
+  padding:10px;
+  border-radius:8px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.logo img{
+  width:50px;
+  height:50px;
+  border-radius:8px;
+}
+.brand-text h1{margin:0;font-size:22px;color:#fff}
+.brand-text p{margin:2px 0;font-size:10px;color:#fff}
+.small-title{
+  font-size:12px;
+  font-weight:bold;
+  color:#fff;
+}
+.info{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+.info-box h4{margin:0 0 2px 0;color:var(--primary);font-size:11px;}
+.info-box span{font-size:11px;}
+.info-box input, .info-box textarea{
+  width:100%;
+  padding:4px 6px;
+  margin-top:2px;
+  border:1px solid var(--primary);
+  border-radius:4px;
+  font-size:11px;
+}
+.table-wrap{
+  margin-top:10px;
+  position:relative;
+}
+.watermark{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:40px;
+  font-weight:800;
+  color:rgba(106,13,173,0.05);
+  pointer-events:none;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:5px;
+  font-size:11px;
+  text-align:left;
+}
+th{
+  background:#9bd6f3;
+  color:#000;
+  padding:6px;
+  text-align:left;
+}
+td{
+  padding:6px;
+  border-bottom:1px solid #ddd;
+}
+.total-box{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:8px;
+}
+.total{
+  background:#efa4ac;
+  color:black;
+  padding:5px 10px;
+  font-weight:700;
+  font-size:11px;
+}
+.terms{
+  margin-top:8px;
+  margin-bottom:8px;
+  font-size:10px;
+  color:#333;
+}
+.signature{
+  margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+}
+.signature div{
+  text-align:center;
+}
+.pos{
+  padding:15px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.form, .ship-form{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:8px;
+  align-items:end;
+}
+.form label, .ship-form label{
+  font-size:11px;
+  margin-bottom:2px;
+  display:block;
+}
+select,input,textarea,button{
+  padding:5px;
+  border-radius:4px;
+  border:1px solid var(--primary);
+  font-size:11px;
+}
+button{
+  font-weight:700;
+  cursor:pointer;
+  font-size:11px;
+}
+button.view-btn{background:var(--green); color:#fff; border:none; padding:3px 6px; margin-left:3px;}
+button.delete-btn{background:var(--red); color:#fff; border:none; padding:3px 6px; margin-left:3px;}
+.print-btn, .done-btn, .export-btn{
+  margin-top:10px;
+}
+.history table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  font-size:11px;
+}
+.history th, .history td{
+  border:1px solid #ddd;
+  padding:5px;
+  text-align:left;
+}
+@media print {
+  body { background: #fff; margin: 0; }
+  .left-side { display: none !important; }
+  #receiptToPrint {
+    width: 105mm;
+    height: 148mm;
+    padding: 5mm;
+    margin: 0 auto;
+    box-shadow: none;
+  }
+  #shopCopy, #customerCopy { page-break-inside: avoid; }
+  #customerCopy { page-break-before: always; }
+  table { font-size: 10px; }
+  .info-box span, .info-box h4, .total, .terms, .signature div { font-size: 9px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container-wrapper">
+  <!-- LEFT SIDE -->
+  <div class="left-side">
+    <div class="pos">
+      <h3 style="color:var(--primary); font-size:14px;">Print Express </h3>
+      
+      <!-- Upload Header Image -->
+      <div style="margin-top:10px;">
+        <label for="headerImage">Upload Header Image:</label>
+        <input type="file" id="headerImage" accept="image/*">
+      </div>
+      
+      <div class="form">
+        <div>
+          <label for="item">Select Service</label>
+          <select id="item">
+            <option value="" data-price="0">Select Service</option>
+            <option value="3R Photo Print" data-price="20">3R Photo Print</option>
+            <option value="4R Photo Print" data-price="25">4R Photo Print</option>
+            <option value="5R Photo Print" data-price="30">5R Photo Print</option>
+            <option value="A4 Photo Print" data-price="45">A4 Photo Print</option>
+            <option value="Sticker Print" data-price="5">2x2 Sticker Print</option>
+            <option value="A4 Sintra Board" data-price="140">A4 Sintra Board</option>
+            <option value="A3 Sintra Board" data-price="290">A3 Sintra Board</option>
+            <option value="Customized Keychain" data-price="25">Customized Keychain</option>
+            <option value="A5 Customized Notebook" data-price="85">A5 Customized Notebook </option>
+          </select>
+        </div>
+        <div>
+          <label for="qty">Quantity</label>
+          <input type="number" id="qty" placeholder="Qty" value="1">
+        </div>
+        <div>
+          <label for="price">Price</label>
+          <input type="number" id="price" placeholder="Price">
+        </div>
+        <div>
+          <button onclick="addItem()">ADD</button>
+        </div>
+      </div>
+
+      <!-- Ship To Fields -->
+      <div class="ship-form" style="margin-top:10px;">
+        <div>
+          <label>Name</label>
+          <input type="text" id="custName" placeholder="Name">
+        </div>
+        <div>
+          <label>Address</label>
+          <input type="text" id="custAddress" placeholder="Address">
+        </div>
+        <div>
+          <label>Contact</label>
+          <input type="text" id="custContact" placeholder="Contact Number">
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button class="done-btn" onclick="saveReceipt()">DONE</button>
+        <button class="print-btn" onclick="printReceipt()">PRINT RECEIPT</button>
+        <button class="export-btn" onclick="exportExcel()">EXPORT HISTORY EXCEL</button>
+      </div>
+
+      <div class="history">
+        <h4>Receipt History</h4>
+        <table id="receiptHistoryTable">
+          <thead>
+            <tr>
+              <th>No</th><th>Receipt No</th><th>Date</th><th>Customer Details</th><th>Total</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="receiptHistory"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE RECEIPT -->
+  <div class="right-side">
+    <div class="container" id="receiptToPrint">
+      <!-- SHOP COPY -->
+      <div id="shopCopy">
+        <div class="header">
+          <div class="brand logo"><img src="logo.jpg" alt="Logo"></div>
+          <div class="brand-text"><h1>Print Express</h1><p>Printing Services</p></div>
+          <div class="small-title">RECEIPT <br> CUSTOMER COPY</div>
+        </div>
+        <div class="info">
+          <div class="info-box"><h4>VENDOR</h4><span>Print Express <br>Taguig City</span></div>
+          <div class="info-box"><h4>CUSTOMER DETAILS</h4><span id="shopShipTo"></span></div>
+          <div class="info-box"><h4>RECEIPT INFO</h4><span>No: <span id="rno">PE00001</span><br>Date: <span id="rdate"></span></span></div>
+        </div>
+        <div class="table-wrap">
+          <div class="watermark">Print Express</div>
+          <table id="receiptTable">
+            <tr>
+              <th>NO.</th><th>DESCRIPTION</th><th>QTY</th><th>PRICE</th><th>AMOUNT</th>
+            </tr>
+          </table>
+        </div> <br><br>
+        <div class="total-box"><div class="total">TOTAL: ₱ <span id="grandTotal">0</span></div></div>
+        <br>
+        <div class="terms">
+          <strong>Terms and Conditions:</strong><br>
+          50% DP required.<br>
+          Remaining balance must be paid before delivery.
+        </div>
+        <br>
+        <div class="signature">
+          <div>_________________<br>Print Express Signature</div>
+          <div>_________________<br>Customer Signature</div>
+        </div>
+      </div>
+
+      <!-- CUSTOMER COPY -->
+      <div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;" id="customerCopy">
+        <div class="header">
+          <div class="brand logo"><img src="logo.jpg" alt="Logo"></div>
+          <div class="brand-text"><h1>Print Express</h1><p>Printing Services</p></div>
+          <div class="small-title">RECEIPT <br> SHOP COPY</div>
+        </div>
+        <div class="info">
+          <div class="info-box"><h4>VENDOR</h4><span>Print Express <br> Taguig City</span></div>
+          <div class="info-box"><h4>CUSTOMER DETAILS</h4><span id="custShipTo"></span></div>
+          <div class="info-box"><h4>RECEIPT INFO</h4><span>No: <span id="custRno">PE00001</span><br>Date: <span id="custDate"></span></span></div>
+        </div>
+        <div class="table-wrap">
+          <table id="customerTable">
+            <tr>
+              <th>NO.</th><th>DESCRIPTION</th><th>QTY</th><th>PRICE</th><th>AMOUNT</th>
+            </tr>
+          </table>
+        </div><br><br>
+        <div class="total-box"><div class="total">TOTAL: ₱ <span id="custTotal">0</span></div></div>
+        <br>
+        <div class="terms">
+          <strong>Terms and Conditions:</strong><br>
+          50% DP required.<br>
+          Remaining balance must be paid before delivery.
+        </div>
+        <br>
+        <div class="signature">
+          <div>_________________<br>Print Express Signature</div>
+          <div>_________________<br>Customer Signature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// JS code remains the same as previous version
+let count=0;
+let total=0;
+let receiptHistory = JSON.parse(localStorage.getItem("receiptHistory") || "[]");
+
+window.onload = () => {
+  updateHistory();
+  document.getElementById('rdate').innerText=new Date().toLocaleDateString();
+  document.getElementById('custDate').innerText=new Date().toLocaleDateString();
+};
+
+document.getElementById('item').addEventListener('change',function(){
+  let price=this.options[this.selectedIndex].dataset.price;
+  document.getElementById('price').value=price;
+});
+
+function generateReceiptNumber(){
+  let num="";
+  for(let i=0;i<5;i++){
+    num+=Math.floor(Math.random()*10);
+  }
+  return "PE"+num;
+}
+
+function addItem(){
+  const item = document.getElementById('item').value;
+  const qty = Number(document.getElementById('qty').value);
+  let price = Number(document.getElementById('price').value);
+  const name = document.getElementById('custName').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  const contact = document.getElementById('custContact').value.trim();
+
+  if(!item || !qty || !price || !name || !address || !contact){
+    return Swal.fire('Oops!','Please fill all fields including Ship To info','warning');
+  }
+
+  const amount = qty * price;
+
+  count++;
+  total += amount;
+
+  const rowContent = `<td>${count}</td><td>${item}</td><td>${qty}</td><td>₱${price.toFixed(2)}</td><td>₱${amount.toFixed(2)}</td>`;
+
+  document.getElementById('receiptTable').innerHTML += `<tr>${rowContent}</tr>`;
+  document.getElementById('customerTable').innerHTML += `<tr>${rowContent}</tr>`;
+
+  document.getElementById('grandTotal').innerText = total.toFixed(2);
+  document.getElementById('custTotal').innerText = total.toFixed(2);
+
+  const shipToText = `${name}, ${address}, ${contact}`;
+  document.getElementById('shopShipTo').innerText = shipToText;
+  document.getElementById('custShipTo').innerText = shipToText;
+}
+
+function saveReceipt(){
+  const rno = generateReceiptNumber();
+  const date = new Date().toLocaleDateString();
+  const name = document.getElementById('custName').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  const contact = document.getElementById('custContact').value.trim();
+  if(!name || !address || !contact){
+    return Swal.fire('Oops!','Please fill Ship To info','warning');
+  }
+
+  const shipTo = `${name}, ${address}, ${contact}`;
+  const receiptData = { rno, date, shipTo, total, items: [] };
+  const rows = document.querySelectorAll('#receiptTable tr');
+  rows.forEach((row, idx)=>{
+    if(idx===0) return;
+    const tds = row.querySelectorAll('td');
+    receiptData.items.push({
+      no: tds[0].innerText,
+      description: tds[1].innerText,
+      qty: tds[2].innerText,
+      price: tds[3].innerText,
+      amount: tds[4].innerText
+    });
+  });
+
+  receiptHistory.push(receiptData);
+  localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+  updateHistory();
+
+  document.getElementById('rno').innerText = rno;
+  document.getElementById('custRno').innerText = rno;
+  document.getElementById('rdate').innerText = date;
+  document.getElementById('custDate').innerText = date;
+
+  count = 0;
+  total = 0;
+  document.getElementById('receiptTable').innerHTML = `<tr><th>NO.</th><th>DESCRIPTION</th><th>QTY</th><th>PRICE</th><th>AMOUNT</th></tr>`;
+  document.getElementById('customerTable').innerHTML = `<tr><th>NO.</th><th>DESCRIPTION</th><th>QTY</th><th>PRICE</th><th>AMOUNT</th></tr>`;
+  document.getElementById('custName').value="";
+  document.getElementById('custAddress').value="";
+  document.getElementById('custContact').value="";
+  document.getElementById('grandTotal').innerText="0";
+  document.getElementById('custTotal').innerText="0";
+
+  Swal.fire('Success','Receipt saved!','success');
+}
+
+function printReceipt(){ window.print(); }
+
+function updateHistory(){
+  const historyEl = document.getElementById('receiptHistory');
+  historyEl.innerHTML = "";
+  receiptHistory.forEach((r,index)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index+1}</td>
+      <td>${r.rno}</td>
+      <td>${r.date}</td>
+      <td>${r.shipTo}</td>
+      <td>₱${r.total.toFixed(2)}</td>
+      <td>
+        <button class="delete-btn" onclick="deleteReceipt(${index})">Delete</button>
+      </td>
+    `;
+    historyEl.appendChild(tr);
+  });
+}
+
+function exportExcel(){
+  if(receiptHistory.length===0) return Swal.fire('Oops!','No receipts to export','warning');
+  let wb = XLSX.utils.book_new();
+  receiptHistory.forEach(r=>{
+    let ws_data = [["No","Description","Qty","Price","Amount"]];
+    r.items.forEach(it=>{ ws_data.push([it.no,it.description,it.qty,it.price,it.amount]); });
+    ws_data.push(["","","","Total","₱"+r.total.toFixed(2)]);
+    let ws = XLSX.utils.aoa_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, r.rno);
+  });
+  XLSX.writeFile(wb,"Receipt_History.xlsx");
+}
+
+function deleteReceipt(index){
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if(result.isConfirmed){
+      receiptHistory.splice(index,1);
+      localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+      updateHistory();
+      Swal.fire('Deleted!','Receipt has been deleted.','success');
+    }
+  });
+}
+
+// Upload header image
+document.getElementById('headerImage').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(event){
+    document.querySelectorAll('.header').forEach(header => {
+      header.style.backgroundImage = `url(${event.target.result})`;
+      header.style.color = '#fff';
+    });
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+</body>
+</html>
