@@ -8,23 +8,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;}
-body{margin:0;font-family:Segoe UI;background:#eef2f7;transition:0.3s;}
-body {
-    background-image: url('BGG.jpg'); 
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
+body{margin:0;font-family:Segoe UI;background:#eef2f7;transition:0.3s;color:#111;}
+body {background-image: url('BGG.jpg'); background-size: cover;background-position: center;background-repeat: no-repeat;background-attachment: fixed;}
 body.dark{background:#1e293b;color:white;}
 .navbar{display:flex;align-items:center;gap:12px;background:#0f172a;color:white;padding:12px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.2);}
 .navbar.dark{background:#111827;}
 .navbar img{width:40px;height:40px;border-radius:6px;}
-.navbar h1{font-size:18px;margin:0;}
+.navbar h1{font-size:18px;margin:0;color:white;}
 .navbar .toggle-dark{margin-left:auto;padding:6px 10px;border:none;border-radius:4px;background:#2563eb;color:white;cursor:pointer;transition:.2s;}
 .navbar .toggle-dark:hover{opacity:.85;transform:scale(1.03);}
 .wrapper{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;padding:20px;max-width:1500px;margin:auto;}
-.card{background:white;border-radius:10px;padding:16px;box-shadow:0 3px 12px rgba(0,0,0,0.08);animation:fadeUp .5s ease; text-align: left; transition:.3s;}
+.card{background:white;border-radius:10px;padding:16px;box-shadow:0 3px 12px rgba(0,0,0,0.08);animation:fadeUp .5s ease; text-align: left; transition:.3s;color:#111;}
 .card.dark{background:#334155;color:white;box-shadow:0 3px 12px rgba(0,0,0,0.4);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;}}
 h3{margin-top:0;}
@@ -36,6 +30,7 @@ h3{margin-top:0;}
 .month{background:#fca5a5;}
 .form{display:grid;grid-template-columns:1fr 80px 100px 80px;gap:8px;margin-bottom:10px;}
 input,select,button{padding:7px;font-size:12px;border-radius:4px;border:1px solid #d1d5db;}
+input.dark, select.dark{background:#1e293b;color:white;border:1px solid #555;}
 button{border:none;cursor:pointer;background:#2563eb;color:white;transition:.2s;}
 button:hover{opacity:.85;transform:scale(1.03);}
 .print{background:#22c55e}
@@ -44,47 +39,39 @@ button:hover{opacity:.85;transform:scale(1.03);}
 .undo{background:#f59e0b}
 .table-container{overflow:auto;max-height:260px;}
 table{width:100%;border-collapse:collapse;font-size:12px;background:white;}
+table.dark{background:#334155;color:white;}
 th{padding:6px;cursor:pointer;}
-td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;}
+td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;color:#111;}
+.card.dark td, .card.dark th{color:white;border-color:#555;}
 .total{text-align:right;font-weight:bold;margin-top:8px;font-size:14px;}
 .receipt-header{display:flex;align-items:center;gap:10px;border-bottom:2px solid #eee;padding-bottom:8px;margin-bottom:10px;position:relative;}
 .receipt-header img{width:45px;height:45px;border-radius:6px;z-index:1;}
 .shop-title{font-weight:bold;font-size:15px;z-index:1;}
 .shop-sub{font-size:11px;color:#666;z-index:1;}
-.watermark{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    margin-top: 15%;
-    width:150px;
-    height:150px;
-    opacity:0.3;
-    z-index:0;
-}
+.card.dark .shop-sub{color:white;}
+.watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);margin-top: 15%;width:150px;height:150px;opacity:0.3;z-index:0;}
 @media print{
-  body{background:white;}
+  body{background:white;color:black;}
   .left, .navbar{display:none;}
-  #receiptToPrint{
-    width:105mm; /* A6 width */
-    min-height:148mm; /* A6 height */
-    font-size:8px;   /* smaller text for A6 */
-    padding: 1px;
-    box-shadow:none;
-  }
-  #receiptTable th, #receiptTable td{
-    padding:2px;
-    font-size:8px;
-  }
-  .watermark{
-    margin-top: 18%;
-    width:150px;
-    height:150px;
-    opacity:0.3;
-  }
-  .total{
-    font-size:8px;
-  }
+  #receiptToPrint{width:105mm; min-height:148mm; font-size:8px; padding:1px;box-shadow:none;}
+  #receiptTable th, #receiptTable td{padding:2px;font-size:8px;}
+  .watermark{margin-top:18%;width:150px;height:150px;opacity:0.3;}
+  .total{font-size:8px;}
+}
+
+/* Responsive for mobile */
+@media(max-width:900px){
+  .wrapper{grid-template-columns:1fr;}
+  .form{grid-template-columns:1fr 60px 80px 60px;}
+  .dashboard{grid-template-columns:1fr 1fr;}
+  .navbar h1{font-size:16px;}
+}
+@media(max-width:500px){
+  .form{grid-template-columns:1fr 50px 60px 50px;}
+  .dashboard{grid-template-columns:1fr;}
+  input,select,button{font-size:10px;padding:5px;}
+  .box{font-size:12px;padding:10px;}
+  h3{font-size:14px;}
 }
 </style>
 </head>
@@ -190,7 +177,7 @@ td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;}
 <tr>
 <th>No</th>
 <th>Description</th>
-<th> Qty</th>
+<th>Qty</th>
 <th>Price</th>
 <th>Amount</th>
 </tr>
@@ -209,6 +196,7 @@ Thank you for your order! Visit us again.
 </div>
 
 <script>
+// Variables
 let count=0,total=0,undoStack=[]
 let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]")
 
@@ -234,6 +222,7 @@ let items=[
 {name:"Composition Notebook",price:69}
 ]
 
+// Populate item select
 function populateItems(){
   const select=document.getElementById("item")
   select.innerHTML='<option value="" data-price="0">Service</option>'
@@ -246,6 +235,7 @@ document.getElementById("item").addEventListener("change",function(){
   document.getElementById("price").value=sel.dataset.price
 })
 
+// Add new item
 function addNewItem(){
   const name=document.getElementById("newItemName").value
   const price=Number(document.getElementById("newItemPrice").value)
@@ -291,6 +281,7 @@ document.getElementById("rDatePrint").innerText=date
 document.getElementById("rNoPrint").innerText=rno
 }
 
+// UNDO ITEM
 function undoItem(){
 if(undoStack.length===0) return Swal.fire("Info","Nothing to undo","info")
 const last=undoStack.pop()
@@ -300,6 +291,7 @@ document.getElementById("receiptTable").rows[count+1].remove()
 document.getElementById("grandTotal").innerText=total
 }
 
+// SAVE RECEIPT
 function saveReceipt(){
 if(total==0)return Swal.fire("Error","Add items first","error")
 const rno=document.getElementById("rNoPrint").innerText
@@ -338,6 +330,7 @@ document.getElementById("custName").value=""
 document.getElementById("custAddress").value=""
 }
 
+// UPDATE HISTORY
 function updateHistory(){
 const el=document.getElementById("receiptHistory")
 el.innerHTML=""
@@ -354,6 +347,7 @@ el.appendChild(tr)
 })
 }
 
+// DELETE CONFIRM
 function confirmDelete(i){
 Swal.fire({
   title:"Delete Receipt?",
@@ -373,6 +367,7 @@ Swal.fire({
 })
 }
 
+// FILTER
 function filterHistory(){
 let input=document.getElementById("filterInput").value.toLowerCase()
 document.querySelectorAll("#receiptHistory tr").forEach(tr=>{
@@ -382,6 +377,7 @@ tr.style.display=(name.includes(input)||rno.includes(input))?"":"none"
 })
 }
 
+// EXPORT EXCEL
 function exportExcel(){
 let wb=XLSX.utils.book_new()
 let data=[["Receipt","Date","Customer","Address","Mode of Payment","Sales","Profit"]]
@@ -391,14 +387,18 @@ XLSX.utils.book_append_sheet(wb,ws,"Sales")
 XLSX.writeFile(wb,"sales.xlsx")
 }
 
+// PRINT
 function printReceipt(){window.print()}
 
+// TOGGLE DARK MODE
 function toggleDark(){
 document.body.classList.toggle("dark")
 document.querySelectorAll(".card").forEach(c=>c.classList.toggle("dark"))
 document.querySelectorAll(".navbar").forEach(n=>n.classList.toggle("dark"))
+document.querySelectorAll("input, select").forEach(el=>el.classList.toggle("dark"))
 }
 
+// DASHBOARD
 function updateDashboard(){
 const today=new Date().toLocaleDateString()
 const month=new Date().toLocaleString('default',{month:'long',year:'numeric'})
