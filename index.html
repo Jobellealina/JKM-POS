@@ -20,6 +20,9 @@ body.dark{background:#1e293b;color:white;}
 .wrapper{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;padding:20px;max-width:1500px;margin:auto;}
 .card{background:white;border-radius:10px;padding:16px;box-shadow:0 3px 12px rgba(0,0,0,0.08);animation:fadeUp .5s ease; text-align: left; transition:.3s;color:#111;}
 .card.dark{background:#334155;color:white;box-shadow:0 3px 12px rgba(0,0,0,0.4);}
+.card h3{color:inherit;}
+.card input, .card select{background:white;color:#111;border:1px solid #d1d5db;}
+.card.dark input, .card.dark select{background:#1e293b;color:white;border:1px solid #555;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;}}
 h3{margin-top:0;}
 .dashboard{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:15px;}
@@ -29,8 +32,7 @@ h3{margin-top:0;}
 .profit{background:#22c55e;color:white;}
 .month{background:#fca5a5;}
 .form{display:grid;grid-template-columns:1fr 80px 100px 80px;gap:8px;margin-bottom:10px;}
-input,select,button{padding:7px;font-size:12px;border-radius:4px;border:1px solid #d1d5db;}
-input.dark, select.dark{background:#1e293b;color:white;border:1px solid #555;}
+input,select,button{padding:7px;font-size:12px;border-radius:4px;}
 button{border:none;cursor:pointer;background:#2563eb;color:white;transition:.2s;}
 button:hover{opacity:.85;transform:scale(1.03);}
 .print{background:#22c55e}
@@ -39,10 +41,10 @@ button:hover{opacity:.85;transform:scale(1.03);}
 .undo{background:#f59e0b}
 .table-container{overflow:auto;max-height:260px;}
 table{width:100%;border-collapse:collapse;font-size:12px;background:white;}
-table.dark{background:#334155;color:white;}
-th{padding:6px;cursor:pointer;}
+th{padding:6px;cursor:pointer;background:#f3f4f6;color:#111;position:sticky;top:0;}
+.card.dark th{background:#334155;color:white;}
 td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;color:#111;}
-.card.dark td, .card.dark th{color:white;border-color:#555;}
+.card.dark td{color:white;border-color:#555;}
 .total{text-align:right;font-weight:bold;margin-top:8px;font-size:14px;}
 .receipt-header{display:flex;align-items:center;gap:10px;border-bottom:2px solid #eee;padding-bottom:8px;margin-bottom:10px;position:relative;}
 .receipt-header img{width:45px;height:45px;border-radius:6px;z-index:1;}
@@ -58,13 +60,11 @@ td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;colo
   .watermark{margin-top:18%;width:150px;height:150px;opacity:0.3;}
   .total{font-size:8px;}
 }
-
-/* Responsive for mobile */
+/* Responsive */
 @media(max-width:900px){
   .wrapper{grid-template-columns:1fr;}
   .form{grid-template-columns:1fr 60px 80px 60px;}
   .dashboard{grid-template-columns:1fr 1fr;}
-  .navbar h1{font-size:16px;}
 }
 @media(max-width:500px){
   .form{grid-template-columns:1fr 50px 60px 50px;}
@@ -72,10 +72,10 @@ td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;colo
   input,select,button{font-size:10px;padding:5px;}
   .box{font-size:12px;padding:10px;}
   h3{font-size:14px;}
+  .table-container{max-height:200px;overflow:auto;}
 }
 </style>
 </head>
-
 <body>
 <div class="navbar">
 <img src="logo.png">
@@ -94,7 +94,6 @@ td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;colo
 </div>
 </div>
 
-<br>
 <div class="card">
 <h3>Add Service / Manage Items</h3>
 <div class="form">
@@ -127,15 +126,13 @@ td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;colo
 <input placeholder="Item Name" id="newItemName">
 <input placeholder="Price" type="number" id="newItemPrice">
 <button onclick="addNewItem()">Add Item</button>
-<button onclick="updateItems()">Update List</button>
 </div>
 </div>
 
-<br>
 <div class="card">
 <h3>Receipt History</h3>
-<input type="text" placeholder="Search by customer or receipt #" id="filterInput" style="width:100%;padding:5px;margin-bottom:6px;border-radius:4px;border:1px solid #d1d5db;" onkeyup="filterHistory()">
 <div class="table-container">
+<input type="text" placeholder="Search by customer or receipt #" id="filterInput" style="width:100%;padding:5px;margin-bottom:6px;border-radius:4px;border:1px solid #d1d5db;" onkeyup="filterHistory()">
 <table>
 <thead>
 <tr>
@@ -184,22 +181,18 @@ td{padding:6px;border-bottom:1px solid #eee;transition:.2s;background:white;colo
 </table>
 <hr>
 </div>
-
 <br>
 <div class="total">
 TOTAL ₱ <span id="grandTotal">0</span>
 </div>
-
 <div style="margin-top:10px;font-size:11px;color:#666;" id="receiptFooter">
 Thank you for your order! Visit us again.
 </div>
 </div>
 
 <script>
-// Variables
 let count=0,total=0,undoStack=[]
 let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]")
-
 let items=[
 {name:"3R Photo Print",price:20},
 {name:"4R Photo Print",price:25},
@@ -222,32 +215,28 @@ let items=[
 {name:"Composition Notebook",price:69}
 ]
 
-// Populate item select
 function populateItems(){
-  const select=document.getElementById("item")
-  select.innerHTML='<option value="" data-price="0">Service</option>'
-  items.forEach((i)=>{ select.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>` })
+const select=document.getElementById("item")
+select.innerHTML='<option value="" data-price="0">Service</option>'
+items.forEach(i=>{select.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`})
 }
 populateItems()
-
 document.getElementById("item").addEventListener("change",function(){
-  const sel=this.options[this.selectedIndex]
-  document.getElementById("price").value=sel.dataset.price
+const sel=this.options[this.selectedIndex]
+document.getElementById("price").value=sel.dataset.price
 })
 
-// Add new item
 function addNewItem(){
-  const name=document.getElementById("newItemName").value
-  const price=Number(document.getElementById("newItemPrice").value)
-  if(!name||price<=0)return Swal.fire("Error","Enter valid item name and price","error")
-  items.push({name,price})
-  Swal.fire("Added","Item added","success")
-  populateItems()
-  document.getElementById("newItemName").value=""
-  document.getElementById("newItemPrice").value=""
+const name=document.getElementById("newItemName").value
+const price=Number(document.getElementById("newItemPrice").value)
+if(!name||price<=0)return Swal.fire("Error","Enter valid item name and price","error")
+items.push({name,price})
+Swal.fire("Added","Item added","success")
+populateItems()
+document.getElementById("newItemName").value=""
+document.getElementById("newItemPrice").value=""
 }
 
-// ADD ITEM
 function addItem(){
 const itemName=document.getElementById("item").value
 const qty=Number(document.getElementById("qty").value)
@@ -257,8 +246,7 @@ const amount=qty*price
 count++
 total+=amount
 undoStack.push({name:itemName,qty,price,amount})
-document.getElementById("receiptTable").innerHTML+=`
-<tr>
+document.getElementById("receiptTable").innerHTML+=`<tr>
 <td>${count}</td>
 <td>${itemName}</td>
 <td>${qty}</td>
@@ -267,7 +255,6 @@ document.getElementById("receiptTable").innerHTML+=`
 </tr>`
 document.getElementById("grandTotal").innerText=total
 
-// Update customer details automatically
 const customer=document.getElementById("custName").value||"Walk-in"
 const address=document.getElementById("custAddress").value||"N/A"
 const payment=document.getElementById("paymentMethod").value
@@ -281,17 +268,9 @@ document.getElementById("rDatePrint").innerText=date
 document.getElementById("rNoPrint").innerText=rno
 }
 
-// UNDO ITEM
-function undoItem(){
-if(undoStack.length===0) return Swal.fire("Info","Nothing to undo","info")
-const last=undoStack.pop()
-total-=last.amount
-count--
-document.getElementById("receiptTable").rows[count+1].remove()
-document.getElementById("grandTotal").innerText=total
-}
+// Undo, Save, UpdateHistory, etc. (profit calculation fixed as original)
+function undoItem(){if(undoStack.length===0)return Swal.fire("Info","Nothing to undo","info");const last=undoStack.pop();total-=last.amount;count--;document.getElementById("receiptTable").rows[count+1].remove();document.getElementById("grandTotal").innerText=total}
 
-// SAVE RECEIPT
 function saveReceipt(){
 if(total==0)return Swal.fire("Error","Add items first","error")
 const rno=document.getElementById("rNoPrint").innerText
@@ -308,121 +287,66 @@ profit+=price*qty*0.3
 const customer=document.getElementById("custName").value||"Walk-in"
 const address=document.getElementById("custAddress").value||"N/A"
 const payment=document.getElementById("paymentMethod").value
-
 const receipt={rno,date,month,shipTo:customer,address,payment,total,profit}
 receiptHistory.push(receipt)
 localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory))
 updateHistory()
 updateDashboard()
 Swal.fire("Saved","Receipt saved!","success")
-
-// Reset receipt table
 count=0; total=0; undoStack=[]
-document.getElementById("receiptTable").innerHTML=`<tr>
-<th>No</th>
-<th>Description</th>
-<th>Qty</th>
-<th>Price</th>
-<th>Amount</th>
-</tr>`
+document.getElementById("receiptTable").innerHTML=`<tr><th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr>`
 document.getElementById("grandTotal").innerText=0
 document.getElementById("custName").value=""
 document.getElementById("custAddress").value=""
 }
 
-// UPDATE HISTORY
 function updateHistory(){
 const el=document.getElementById("receiptHistory")
 el.innerHTML=""
 receiptHistory.forEach((r,i)=>{
 const tr=document.createElement("tr")
-tr.innerHTML=`<td>${i+1}</td>
-<td>${r.rno}</td>
-<td>${r.date}</td>
-<td>${r.shipTo}</td>
-<td>₱${r.total}</td>
-<td>₱${r.profit}</td>
-<td><button class="delete" onclick="confirmDelete(${i})">X</button></td>`
+tr.innerHTML=`<td>${i+1}</td><td>${r.rno}</td><td>${r.date}</td><td>${r.shipTo}</td><td>₱${r.total}</td><td>₱${r.profit}</td><td><button class="delete" onclick="confirmDelete(${i})">X</button></td>`
 el.appendChild(tr)
 })
 }
 
-// DELETE CONFIRM
 function confirmDelete(i){
-Swal.fire({
-  title:"Delete Receipt?",
-  text:"This action cannot be undone.",
-  icon:"warning",
-  showCancelButton:true,
-  confirmButtonColor:"#ef4444",
-  confirmButtonText:"Yes, delete it!"
-}).then(result=>{
-  if(result.isConfirmed){
-    receiptHistory.splice(i,1)
-    localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory))
-    updateHistory()
-    updateDashboard()
-    Swal.fire("Deleted","Receipt deleted","success")
-  }
-})
+Swal.fire({title:"Delete Receipt?",text:"This action cannot be undone.",icon:"warning",showCancelButton:true,confirmButtonColor:"#ef4444",confirmButtonText:"Yes, delete it!"}).then(result=>{if(result.isConfirmed){receiptHistory.splice(i,1);localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));updateHistory();updateDashboard();Swal.fire("Deleted","Receipt deleted","success")}})
 }
 
-// FILTER
 function filterHistory(){
 let input=document.getElementById("filterInput").value.toLowerCase()
-document.querySelectorAll("#receiptHistory tr").forEach(tr=>{
-let name=tr.children[3].innerText.toLowerCase()
-let rno=tr.children[1].innerText.toLowerCase()
-tr.style.display=(name.includes(input)||rno.includes(input))?"":"none"
-})
+document.querySelectorAll("#receiptHistory tr").forEach(tr=>{let name=tr.children[3].innerText.toLowerCase();let rno=tr.children[1].innerText.toLowerCase();tr.style.display=(name.includes(input)||rno.includes(input))?"":"none"})
 }
 
-// EXPORT EXCEL
-function exportExcel(){
-let wb=XLSX.utils.book_new()
-let data=[["Receipt","Date","Customer","Address","Mode of Payment","Sales","Profit"]]
-receiptHistory.forEach(r=>data.push([r.rno,r.date,r.shipTo,r.address,r.payment,r.total,r.profit]))
-let ws=XLSX.utils.aoa_to_sheet(data)
-XLSX.utils.book_append_sheet(wb,ws,"Sales")
-XLSX.writeFile(wb,"sales.xlsx")
-}
+function exportExcel(){let wb=XLSX.utils.book_new();let data=[["Receipt","Date","Customer","Address","Mode of Payment","Sales","Profit"]];receiptHistory.forEach(r=>data.push([r.rno,r.date,r.shipTo,r.address,r.payment,r.total,r.profit]));let ws=XLSX.utils.aoa_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,"Sales");XLSX.writeFile(wb,"sales.xlsx")}
 
-// PRINT
 function printReceipt(){window.print()}
 
-// TOGGLE DARK MODE
 function toggleDark(){
 document.body.classList.toggle("dark")
 document.querySelectorAll(".card").forEach(c=>c.classList.toggle("dark"))
 document.querySelectorAll(".navbar").forEach(n=>n.classList.toggle("dark"))
-document.querySelectorAll("input, select").forEach(el=>el.classList.toggle("dark"))
+document.querySelectorAll("input,select").forEach(el=>el.classList.toggle("dark"))
 }
 
-// DASHBOARD
 function updateDashboard(){
 const today=new Date().toLocaleDateString()
 const month=new Date().toLocaleString('default',{month:'long',year:'numeric'})
 let dailySales=0,dailyProfit=0,monthlyProfit=0
-receiptHistory.forEach(r=>{
-if(r.date==today){dailySales+=r.total;dailyProfit+=r.profit}
-if(r.month==month) monthlyProfit+=r.profit
-})
+receiptHistory.forEach(r=>{if(r.date==today){dailySales+=r.total;dailyProfit+=r.profit}if(r.month==month)monthlyProfit+=r.profit})
 animateValue("dailySales",dailySales)
 animateValue("dailyProfit",dailyProfit)
 animateValue("monthlyProfit",monthlyProfit)
 }
 
-function animateValue(id, value){
+function animateValue(id,value){
 const el=document.getElementById(id)
 let start=Number(el.innerText)
 let duration=300
 let stepTime=Math.abs(Math.floor(duration/(value-start||1)))
 let current=start
-const timer=setInterval(()=>{
-if(current<value) current++
-else{clearInterval(timer);current=value}
-el.innerText=current
-},stepTime)
+const timer=setInterval(()=>{if(current<value)current++;else{clearInterval(timer);current=value}el.innerText=current},stepTime)
 }
 
 window.onload=()=>{
