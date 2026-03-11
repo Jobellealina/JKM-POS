@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JKM Prime Digital Prints</title>
+
 <link rel="icon" href="logo.png">
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -17,7 +20,6 @@ font-family:Segoe UI;
 background:#eef2f7;
 transition:.3s;
 color:#111;
-overflow-x:auto;
 }
 
 body{
@@ -41,7 +43,7 @@ align-items:center;
 gap:12px;
 background:#0f172a;
 color:white;
-padding:12px 20px;
+padding:12px 15px;
 }
 
 .navbar img{
@@ -51,7 +53,7 @@ border-radius:6px;
 }
 
 .navbar h1{
-font-size:18px;
+font-size:16px;
 margin:0;
 }
 
@@ -65,29 +67,32 @@ border-radius:4px;
 cursor:pointer;
 }
 
-/* WRAPPER */
+/* LAYOUT */
 
 .wrapper{
 display:grid;
 grid-template-columns:1.4fr 1fr;
 gap:18px;
-padding:20px;
-min-width:900px;
+padding:15px;
 }
 
-/* CARDS */
+@media(max-width:900px){
+.wrapper{
+grid-template-columns:1fr;
+}
+}
+
+/* CARD */
 
 .card{
 background:white;
 border-radius:10px;
-padding:16px;
+padding:14px;
 box-shadow:0 3px 12px rgba(0,0,0,0.1);
-transition:.3s;
 }
 
 body.dark .card{
 background:#1e293b;
-color:white;
 }
 
 /* DASHBOARD */
@@ -98,8 +103,14 @@ grid-template-columns:1fr 1fr 1fr;
 gap:10px;
 }
 
+@media(max-width:600px){
+.dashboard{
+grid-template-columns:1fr;
+}
+}
+
 .box{
-padding:14px;
+padding:12px;
 border-radius:8px;
 font-weight:bold;
 text-align:center;
@@ -118,8 +129,14 @@ gap:6px;
 margin-bottom:10px;
 }
 
+@media(max-width:500px){
+.form{
+grid-template-columns:1fr;
+}
+}
+
 input,select,button{
-padding:6px;
+padding:7px;
 font-size:12px;
 border-radius:4px;
 border:1px solid #ccc;
@@ -140,17 +157,15 @@ color:white;
 /* TABLE */
 
 .table-container{
-overflow:auto;
-max-height:250px;
+overflow-x:auto;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
 font-size:12px;
+min-width:500px;
 }
-
-/* LIGHT MODE TABLE */
 
 th{
 background:#f3f4f6;
@@ -161,8 +176,6 @@ td{
 padding:6px;
 border-bottom:1px solid #eee;
 }
-
-/* DARK MODE TABLE */
 
 body.dark table{
 background:transparent;
@@ -183,15 +196,10 @@ border-bottom:1px solid #475569;
 
 .receipt-header{
 display:flex;
-align-items:center;
 gap:10px;
-border-bottom:2px solid #eee;
-margin-bottom:10px;
+border-bottom:1px solid #ddd;
 padding-bottom:6px;
-}
-
-body.dark .receipt-header{
-border-bottom:1px solid #475569;
+margin-bottom:10px;
 }
 
 .shop-title{
@@ -215,7 +223,6 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-margin-top:15%;
 width:150px;
 opacity:.3;
 }
@@ -225,7 +232,7 @@ opacity:.3;
 .total{
 text-align:right;
 font-weight:bold;
-margin-top:8px;
+margin-top:10px;
 }
 
 /* PRINT */
@@ -258,26 +265,19 @@ font-size:8px;
 
 }
 
-/* MOBILE */
-
-@media(max-width:900px){
-
-.wrapper{
-grid-template-columns:1fr;
-min-width:100%;
-}
-
-}
-
 </style>
 </head>
 
 <body>
 
 <div class="navbar">
+
 <img src="logo.png">
+
 <h1>JKM Prime Digital Prints</h1>
+
 <button class="toggle-dark" onclick="toggleDark()">🌙</button>
+
 </div>
 
 <div class="wrapper">
@@ -316,13 +316,19 @@ Monthly Profit<br>
 <h3>Add Service / Manage Items</h3>
 
 <div class="form">
+
 <select id="item"></select>
+
 <input type="number" id="qty" value="1">
+
 <input type="number" id="price">
+
 <button onclick="addItem()">ADD</button>
+
 </div>
 
 <input placeholder="Customer Name" id="custName">
+
 <input placeholder="Address" id="custAddress">
 
 <br><br>
@@ -335,8 +341,11 @@ Monthly Profit<br>
 <br><br>
 
 <button onclick="saveReceipt()">DONE</button>
+
 <button class="print" onclick="printReceipt()">PRINT</button>
+
 <button class="export" onclick="exportExcel()">EXPORT</button>
+
 <button class="undo" onclick="undoItem()">UNDO</button>
 
 </div>
@@ -352,6 +361,7 @@ Monthly Profit<br>
 <table>
 
 <thead>
+
 <tr>
 <th>No</th>
 <th>Receipt</th>
@@ -361,6 +371,7 @@ Monthly Profit<br>
 <th>Profit</th>
 <th></th>
 </tr>
+
 </thead>
 
 <tbody id="receiptHistory"></tbody>
@@ -372,8 +383,6 @@ Monthly Profit<br>
 </div>
 
 </div>
-
-<!-- RECEIPT -->
 
 <div class="card" id="receiptToPrint" style="position:relative">
 
@@ -435,13 +444,33 @@ let undoStack=[]
 let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]")
 
 let items=[
+
 {name:"3R Photo Print",price:20},
 {name:"4R Photo Print",price:25},
 {name:"5R Photo Print",price:30},
+
+{name:"Rush ID Package 1",price:35},
+{name:"Rush ID Package 2",price:50},
+{name:"Rush ID Package 3",price:45},
+{name:"Rush ID Package 4",price:45},
+{name:"Rush ID Package 5",price:65},
+
 {name:"Typing Job",price:50},
+
 {name:"Document Print Short",price:7},
 {name:"Document Print A4",price:8},
-{name:"Document Print Long",price:10}
+{name:"Document Print Long",price:10},
+
+{name:"Desk Calendar",price:150},
+
+{name:"A4 Sintra Board",price:140},
+{name:"A3 Sintra Board",price:290},
+
+{name:"B5 Notebook Chipboard Cover",price:199},
+{name:"A5 Notebook Chipboard Cover",price:95},
+{name:"A5 Notebook Photo Paper Cover",price:85},
+{name:"Composition Notebook",price:69}
+
 ]
 
 function populateItems(){
