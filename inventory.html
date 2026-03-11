@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Print Express - Inventory & Materials</title>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+:root{
+  --primary:#9bd6f3;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  font-family:'Segoe UI',sans-serif;
+  background:#f5f5f5;
+}
+
+/* NAVBAR */
+.navbar{
+  background:#9bd6f3;
+  padding:12px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.nav-left{
+  font-weight:700;
+  font-size:15px;
+}
+
+.nav-right a{
+  margin-left:12px;
+  text-decoration:none;
+  color:#111;
+  font-size:13px;
+  font-weight:600;
+  padding:6px 12px;
+  border-radius:4px;
+  transition:0.2s;
+}
+
+.nav-right a:hover{
+  background:#7fc4e8;
+}
+
+/* CONTAINER */
+.container{
+  max-width:1000px;
+  margin:20px auto;
+  background:#fff;
+  padding:15px;
+  border-radius:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+h2{margin-top:0;}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:8px;
+}
+
+label{font-size:11px;}
+
+input{
+  padding:6px;
+  border:1px solid var(--primary);
+  border-radius:4px;
+  font-size:11px;
+}
+
+button{
+  padding:6px;
+  border-radius:4px;
+  border:1px solid var(--primary);
+  font-size:11px;
+  cursor:pointer;
+  font-weight:700;
+  transition:0.2s;
+}
+
+button:hover{
+  background:#7fc4e8;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+  margin-top:10px;
+}
+
+th,td{
+  border:1px solid #ddd;
+  padding:6px;
+}
+
+.action-btn{
+  margin-right:4px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="nav-left">PRINT EXPRESS</div>
+  <div class="nav-right">
+    <a href="receipt.html">Sales</a>
+    <a href="inventory.html">Inventory</a>
+  </div>
+</div>
+
+<div class="container">
+<h2>Inventory & Material Tracker</h2>
+
+<div class="grid">
+  <div>
+    <label>Material Name</label>
+    <input type="text" id="matName">
+  </div>
+  <div>
+    <label>Stock</label>
+    <input type="number" id="matStock">
+  </div>
+  <div>
+    <label>Cost</label>
+    <input type="number" id="matCost">
+  </div>
+  <div>
+    <button onclick="addMaterial()">Add Material</button>
+  </div>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>No</th><th>Name</th><th>Stock</th><th>Cost</th><th>Total</th><th>Actions</th>
+</tr>
+</thead>
+<tbody id="inventoryBody"></tbody>
+</table>
+
+</div>
+
+<script>
+let inventory = JSON.parse(localStorage.getItem("inventory")||"[]");
+
+function render(){
+ const el=document.getElementById('inventoryBody');
+ el.innerHTML='';
+ inventory.forEach((m,i)=>{
+   const total = m.stock * m.cost;
+   el.innerHTML += `
+     <tr>
+       <td>${i+1}</td>
+       <td>${m.name}</td>
+       <td>${m.stock}</td>
+       <td>₱${m.cost.toFixed(2)}</td>
+       <td>₱${total.toFixed(2)}</td>
+       <td>
+         <button class="action-btn" onclick="editMat(${i})">Edit</button>
+         <button class="action-btn" onclick="deleteMat(${i})">Delete</button>
+       </td>
+     </tr>
+   `;
+ });
+}
+
+/* ADD */
+function addMaterial(){
+ const name=document.getElementById('matName').value;
+ const stock=Number(document.getElementById('matStock').value);
+ const cost=Number(document.getElementById('matCost').value);
+
+ if(!name||!stock||!cost)
+  return Swal.fire('Oops','Fill all fields','warning');
+
+ inventory.push({name,stock,cost});
+ localStorage.setItem("inventory",JSON.stringify(inventory));
+
+ document.getElementById('matName').value='';
+ document.getElementById('matStock').value='';
+ document.getElementById('matCost').value='';
+
+ Swal.fire('Success','Material added','success');
+ render();
+}
+
+/* EDIT */
+function editMat(i){
+ const m = inventory[i];
+ Swal.fire({
+   title:'Edit Material',
+   html:
+     `<input id="swal-name" class="swal2-input" value="${m.name}">
+      <input id="swal-stock" type="number" class="swal2-input" value="${m.stock}">
+      <input id="swal-cost" type="number" class="swal2-input" value="${m.cost}">`,
+   showCancelButton:true
+ }).then(res=>{
+   if(res.isConfirmed){
+     inventory[i] = {
+       name:document.getElementById('swal-name').value,
+       stock:Number(document.getElementById('swal-stock').value),
+       cost:Number(document.getElementById('swal-cost').value)
+     };
+     localStorage.setItem("inventory",JSON.stringify(inventory));
+     Swal.fire('Updated','Material updated','success');
+     render();
+   }
+ });
+}
+
+/* DELETE */
+function deleteMat(i){
+ Swal.fire({title:'Delete?',showCancelButton:true}).then(res=>{
+   if(res.isConfirmed){
+     inventory.splice(i,1);
+     localStorage.setItem("inventory",JSON.stringify(inventory));
+     Swal.fire('Deleted','Material removed','success');
+     render();
+   }
+ });
+}
+
+window.onload=()=>render();
+</script>
+
+</body>
+</html>
