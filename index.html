@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>JKM Prime Digital Prints</title>
 
 <link rel="icon" href="logo.png">
@@ -18,8 +20,9 @@ body{
 margin:0;
 font-family:Segoe UI;
 background:#eef2f7;
-transition:.3s;
 color:#111;
+transition:.3s;
+font-family: 'Courier New', Courier, monospace;
 }
 
 body{
@@ -40,20 +43,20 @@ color:white;
 .navbar{
 display:flex;
 align-items:center;
-gap:12px;
+gap:10px;
 background:#0f172a;
 color:white;
-padding:12px 15px;
+padding:14px 18px;
 }
 
 .navbar img{
-width:40px;
-height:40px;
+width:42px;
+height:42px;
 border-radius:6px;
 }
 
 .navbar h1{
-font-size:16px;
+font-size:18px;
 margin:0;
 }
 
@@ -62,9 +65,28 @@ margin-left:auto;
 background:#2563eb;
 border:none;
 color:white;
-padding:6px 10px;
+padding:6px 12px;
 border-radius:4px;
 cursor:pointer;
+}
+
+/* MOBILE NAVBAR */
+
+@media(max-width:600px){
+
+.navbar{
+padding:16px;
+}
+
+.navbar img{
+width:48px;
+height:48px;
+}
+
+.navbar h1{
+font-size:20px;
+}
+
 }
 
 /* LAYOUT */
@@ -73,7 +95,7 @@ cursor:pointer;
 display:grid;
 grid-template-columns:1.4fr 1fr;
 gap:18px;
-padding:15px;
+padding:16px;
 }
 
 @media(max-width:900px){
@@ -87,7 +109,7 @@ grid-template-columns:1fr;
 .card{
 background:white;
 border-radius:10px;
-padding:14px;
+padding:15px;
 box-shadow:0 3px 12px rgba(0,0,0,0.1);
 }
 
@@ -164,18 +186,21 @@ table{
 width:100%;
 border-collapse:collapse;
 font-size:12px;
-min-width:500px;
+min-width:450px;
 }
 
 th{
 background:#f3f4f6;
-padding:6px;
+padding:4px 6px;
+font-size:11px;
 }
 
 td{
-padding:6px;
+padding:4px 6px;
 border-bottom:1px solid #eee;
 }
+
+/* DARK MODE TABLE */
 
 body.dark table{
 background:transparent;
@@ -199,7 +224,7 @@ display:flex;
 gap:10px;
 border-bottom:1px solid #ddd;
 padding-bottom:6px;
-margin-bottom:10px;
+margin-bottom:8px;
 }
 
 .shop-title{
@@ -223,7 +248,7 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:150px;
+width:120px;
 opacity:.3;
 }
 
@@ -232,10 +257,11 @@ opacity:.3;
 .total{
 text-align:right;
 font-weight:bold;
-margin-top:10px;
+margin-top:8px;
+font-size:13px;
 }
 
-/* PRINT */
+/* PRINT A6 */
 
 @media print{
 
@@ -250,17 +276,71 @@ display:none;
 
 #receiptToPrint{
 width:105mm;
-min-height:148mm;
-font-size:8px;
+height:auto;
+font-size:10px;
+margin:0;
+
 }
 
-#receiptTable th,#receiptTable td{
-font-size:8px;
+/* IMPORTANT FIX */
+table{
+min-width:0 !important;
+}
+
+#receiptTable{
+width:100%;
+border-collapse:collapse;
+table-layout:fixed;
+}
+
+#receiptTable th,
+#receiptTable td{
 padding:2px;
+font-size:7px;
+overflow:hidden;
+white-space:nowrap;
+text-overflow:ellipsis;
+}
+
+/* PERFECT A6 COLUMN WIDTH */
+
+#receiptTable th:nth-child(1),
+#receiptTable td:nth-child(1){
+width:6%;
+text-align:center;
+}
+
+#receiptTable th:nth-child(2),
+#receiptTable td:nth-child(2){
+width:44%;
+}
+
+#receiptTable th:nth-child(3),
+#receiptTable td:nth-child(3){
+width:10%;
+text-align:center;
+}
+
+#receiptTable th:nth-child(4),
+#receiptTable td:nth-child(4){
+width:20%;
+text-align:right;
+}
+
+#receiptTable th:nth-child(5),
+#receiptTable td:nth-child(5){
+width:20%;
+text-align:right;
 }
 
 .total{
-font-size:8px;
+font-size:9px;
+margin-top:6px;
+}
+
+.watermark{
+width:90px;
+opacity:.25;
 }
 
 }
@@ -313,7 +393,7 @@ Monthly Profit<br>
 
 <div class="card">
 
-<h3>Add Service / Manage Items</h3>
+<h3>Add Service</h3>
 
 <div class="form">
 
@@ -388,7 +468,7 @@ Monthly Profit<br>
 
 <div class="receipt-header">
 
-<img src="logo.png" width="45">
+<img src="logo.png" width="40">
 
 <div>
 
@@ -425,8 +505,6 @@ Printing & Digital Services
 </tr>
 
 </table>
-
-<br>
 
 <div class="total">
 TOTAL ₱ <span id="grandTotal">0</span>
@@ -507,8 +585,6 @@ const amount=qty*price
 
 count++
 total+=amount
-
-undoStack.push({amount})
 
 document.getElementById("receiptTable").innerHTML+=`
 <tr>
@@ -600,15 +676,11 @@ updateHistory()
 }
 
 function toggleDark(){
-
 document.body.classList.toggle("dark")
-
 }
 
 function printReceipt(){
-
 window.print()
-
 }
 
 updateHistory()
