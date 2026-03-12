@@ -6,18 +6,22 @@
 <title>JKM Prime Digital Prints</title>
 <link rel="icon" href="logo.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
 
 <style>
-body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; }
+body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; margin:0; }
 body.dark { background:#0f172a; color:white; }
-.sidebar { height:100vh; max-height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; }
-.sidebar a { color:white; text-decoration:none; display:block; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
+
+.sidebar { height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
+.sidebar a { color:white; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
 .sidebar a:hover { background:#1e40af; color:#fff; }
 .sidebar a.active { background:#3b82f6; color:white; font-weight:600; }
+.sidebar .toggle-btn { margin-top:auto; }
+
 .card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
 body.dark .card { background:#1e293b; color:white; }
 input, select { transition:.3s; background:white; color:#111; font-size:13px; }
@@ -35,149 +39,151 @@ body.dark input, body.dark select { background:#334155; color:white; border-colo
 body.dark .print-area { background:#1e293b; color:white; }
 .watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
 
-/* Tables */
 .table-sm th, .table-sm td { padding:4px; font-size:12px; border:none; }
 body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
 
-/* Responsive Sidebar */
-@media(max-width:768px){ .sidebar { width:100%; height:auto; } }
+.main-content { margin-left:220px; padding:1rem; }
 
-/* Print */
+@media(max-width:768px){
+  .sidebar { width:80px; padding:0.5rem 0; }
+  .sidebar a { justify-content:center; padding:10px 0; flex-direction:column; font-size:11px; }
+  .sidebar h5, .sidebar img { display:none; }
+  .main-content { margin-left:80px; }
+}
+
 @media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:10px; } }
 
-/* Dashboard Columns */
 .dashboard-columns { display:flex; gap:15px; flex-wrap:wrap; }
 .dashboard-columns .card { flex:1 1 45%; }
 </style>
 </head>
 <body>
 
-<div class="d-flex">
-  <!-- Sidebar -->
-  <div class="sidebar d-flex flex-column p-3" style="width:220px;">
-    <img src="logo1.png" width="50" class="mb-3" style="border-radius: 10px; margin-left: 50px;"><br>
-    <h5>JKM Prime Digital Prints</h5>
-    <hr>
-    <nav class="nav flex-column" role="tablist">
-      <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
-      <a class="nav-link" id="receipt-tab" data-bs-toggle="tab" href="#receiptTab" role="tab">Add Receipt</a>
-      <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#historyTab" role="tab">Receipt History</a>
-      <a class="nav-link" id="quotation-tab" data-bs-toggle="tab" href="#quotationTab" role="tab">Quotation</a>
-    </nav>
-    <button class="btn btn-primary mt-auto" onclick="toggleDark()">🌙 Toggle Dark</button>
-  </div>
+<!-- Sidebar -->
+<div class="sidebar">
+  <img src="logo1.png" width="50" class="mb-3 mx-auto" style="border-radius:10px;">
+  <h5 class="text-center mb-3">JKM Prime</h5>
+  <nav class="nav flex-column" role="tablist">
+    <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboardTab" role="tab"><i class="bi bi-speedometer2 fs-5"></i><span class="d-none d-md-inline">Dashboard</span></a>
+    <a class="nav-link" id="receipt-tab" data-bs-toggle="tab" href="#receiptTab" role="tab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a>
+    <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#historyTab" role="tab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a>
+    <a class="nav-link" id="quotation-tab" data-bs-toggle="tab" href="#quotationTab" role="tab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a>
+  </nav>
+  <button class="btn btn-primary toggle-btn mx-auto mt-3" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
+</div>
 
-  <!-- Main Content -->
-  <div class="flex-grow-1 p-3">
-    <div class="tab-content">
-
-      <!-- Dashboard -->
-      <div class="tab-pane fade show active" id="dashboardTab" role="tabpanel">
-        <div class="dashboard-columns mb-3">
-          <div class="card p-3"><h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
-          <div class="card p-3 bg-success text-white"><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
-          <div class="card p-3 bg-primary text-white"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
-          <div class="card p-3 bg-danger text-white"><h6>Monthly Profit</h6><h4>₱ <span id="monthlyProfit">0</span></h4></div>
-        </div>
-        <div class="card p-3"><h5>Sales Diagram</h5><canvas id="salesChart" height="150"></canvas></div>
+<!-- Main Content -->
+<div class="main-content">
+  <div class="tab-content">
+    <!-- Dashboard -->
+    <div class="tab-pane fade show active" id="dashboardTab" role="tabpanel">
+      <div class="dashboard-columns mb-3">
+        <div class="card p-3 bg-secondary text-white" ><h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
+        <div class="card p-3 bg-success text-white"><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
+        <div class="card p-3 bg-primary text-white"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
+        <div class="card p-3 bg-danger text-white"><h6>Monthly Profit</h6><h4>₱ <span id="monthlyProfit">0</span></h4></div>
       </div>
-
-      <!-- Add Receipt -->
-      <div class="tab-pane fade" id="receiptTab" role="tabpanel">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="card p-3 mb-3">
-              <h5>Add Service</h5>
-              <div class="row g-2 mb-2">
-                <div class="col-md-5"><select id="item" class="form-select"></select></div>
-                <div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
-                <div class="col-md-3"><input type="number" id="price" class="form-control"></div>
-                <div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
-              </div>
-              <input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
-              <input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
-              <select id="paymentMethod" class="form-select mb-1">
-                <option>Cash</option>
-                <option>GCash</option>
-              </select>
-              <div class="mt-2">
-                <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
-                <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
-                <button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div id="receiptPreview" class="print-area">
-              <img src="Watermark.png" class="watermark">
-              <div class="mb-2 text-center"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Printing & Digital Services</div>
-              <p>Name: <span id="rNamePrint"></span></p>
-              <p>Address: <span id="rAddressPrint"></span></p>
-              <p>Date: <span id="rDatePrint"></span></p>
-              <p>Receipt No.: <span id="rNoPrint"></span></p>
-              <p>MOP: <span id="rPaymentPrint"></span></p>
-              <table class="table table-sm" id="previewTable">
-                <thead><tr><th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>
-                <tbody></tbody>
-                <tfoot>
-                  <tr><th colspan="4" class="text-end"><br><br><br>TOTAL</th><th id="grandTotal"><br><br><br>0</th></tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Receipt History -->
-      <div class="tab-pane fade" id="historyTab" role="tabpanel">
-        <div class="card p-3">
-          <h5>Receipt History</h5>
-          <div class="mb-2">
-            <button class="btn btn-blue btn-professional" onclick="exportToExcel()">Export</button>
-          </div>
-          <table class="table table-sm" id="historyTable">
-            <thead><tr><th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th></tr></thead>
-            <tbody id="receiptHistory"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Quotation -->
-      <div class="tab-pane fade" id="quotationTab" role="tabpanel">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="card p-3 mb-3">
-              <h5>Create Quotation</h5>
-              <input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
-              <select id="qItemSelect" class="form-select mb-1"></select>
-              <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
-              <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
-              <div class="mt-2">
-                <button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
-                <button class="btn btn-green btn-professional" onclick="downloadQuotation()">Download</button>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div id="quotationPreview" class="print-area">
-              <img src="Watermark.png" class="watermark">
-              <div class="text-center mb-2"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Quotation for Order</div><br>
-              <p>Date: <span id="qDatePrint"></span></p>
-              <p>To: <span id="qNamePrint"></span></p>
-              <p id="quotationText"></p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <div class="card p-3"><h5>Sales Diagram</h5><canvas id="salesChart" height="150"></canvas></div>
     </div>
+
+    <!-- Add Receipt -->
+    <div class="tab-pane fade" id="receiptTab" role="tabpanel">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card p-3 mb-3">
+            <h5>Add Service</h5>
+            <div class="row g-2 mb-2">
+              <div class="col-md-5"><select id="item" class="form-select"></select></div>
+              <div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
+              <div class="col-md-3"><input type="number" id="price" class="form-control"></div>
+              <div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
+            </div>
+            <input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
+            <input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
+            <select id="paymentMethod" class="form-select mb-1">
+              <option>Cash</option>
+              <option>GCash</option>
+            </select>
+            <div class="mt-2">
+              <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
+              <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
+              <button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div id="receiptPreview" class="print-area">
+            <img src="Watermark.png" class="watermark">
+            <div class="mb-2 text-center"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Printing & Digital Services</div>
+            <p>Name: <span id="rNamePrint"></span></p>
+            <p>Address: <span id="rAddressPrint"></span></p>
+            <p>Date: <span id="rDatePrint"></span></p>
+            <p>Receipt No.: <span id="rNoPrint"></span></p>
+            <p>MOP: <span id="rPaymentPrint"></span></p>
+            <table class="table table-sm" id="previewTable">
+              <thead><tr><th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr><th colspan="4" class="text-end"><br><br><br>TOTAL</th><th id="grandTotal"><br><br><br>0</th></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt History -->
+    <div class="tab-pane fade" id="historyTab" role="tabpanel">
+      <div class="card p-3">
+        <h5 style="color: #7995f2;">Receipt History</h5>
+        <table class="table table-sm" id="historyTable">
+          <thead><tr><th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th></tr></thead>
+          <tbody id="receiptHistory"></tbody>
+        </table>
+        <div class="mb-2">
+          <button class="btn btn-blue btn-professional" onclick="exportToExcel()">Export</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quotation -->
+    <div class="tab-pane fade" id="quotationTab" role="tabpanel">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card p-3 mb-3">
+            <h5>Create Quotation</h5>
+            <input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
+            <select id="qItemSelect" class="form-select mb-1"></select>
+            <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
+            <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
+            <div class="mt-2">
+              <button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
+              <button class="btn btn-green btn-professional" onclick="downloadQuotation()">Download</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div id="quotationPreview" class="print-area">
+            <img src="Watermark.png" class="watermark">
+            <div class="text-center mb-2"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Quotation for Order</div><br>
+            <p>Date: <span id="qDatePrint"></span></p>
+            <p>To: <span id="qNamePrint"></span></p>
+            <p id="quotationText"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Populate items
+// ----------------------
+// JavaScript: All your previous JS code
+// ----------------------
+
+// Items
 let items=[{name:"3R Photo Print",price:20},{name:"4R Photo Print",price:25},{name:"5R Photo Print",price:30},{name:"Rush ID Package 1",price:35},{name:"Rush ID Package 2",price:50},{name:"Rush ID Package 3",price:45},{name:"Rush ID Package 4",price:45},{name:"Rush ID Package 5",price:65},{name:"Typing Job",price:50},{name:"Document Print Short",price:7},{name:"Document Print A4",price:8},{name:"Document Print Long",price:10},{name:"Desk Calendar",price:150},{name:"A4 Sintra Board",price:140},{name:"A3 Sintra Board",price:290},{name:"B5 Notebook Chipboard Cover",price:199},{name:"A5 Notebook Chipboard Cover",price:95},{name:"A5 Notebook Photo Paper Cover",price:85},{name:"Composition Notebook",price:69}];
 function populateItems(){ let sel=document.getElementById("item"); let qsel=document.getElementById("qItemSelect"); sel.innerHTML='<option value="">Select Service</option>'; qsel.innerHTML='<option value="">Select Service</option>'; items.forEach(i=>{ sel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`; qsel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`; });}
 populateItems();
@@ -201,8 +207,8 @@ function addItem(){
 }
 function undoItem(){ if(!undoStack.length) return; let last=undoStack.pop(); document.querySelector("#previewTable tbody").deleteRow(-1); total-=last.amount; count--; document.getElementById("grandTotal").innerText=`₱${total}`; }
 function updateReceiptHeader(){ document.getElementById("rNamePrint").innerText=document.getElementById("custName").value; document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value; document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString(); document.getElementById("rPaymentPrint").innerText=document.getElementById("paymentMethod").value; document.getElementById("rNoPrint").innerText="JKM"+Math.floor(Math.random()*90000+10000);}
-function saveReceipt(){ if(count===0){ Swal.fire("Error","No items added","error"); return; } let profit=0; undoStack.forEach(i=>profit+=i.price*i.qty*0.45); receiptHistory.push({rno:document.getElementById("rNoPrint").innerText,date:new Date().toLocaleDateString(),shipTo:document.getElementById("custName").value,total,profit}); localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory)); Swal.fire("Saved","Receipt saved!","success"); document.querySelector("#previewTable tbody").innerHTML=""; total=0; count=0; undoStack=[]; document.getElementById("custName").value=""; document.getElementById("custAddress").value=""; document.getElementById("grandTotal").innerText="₱0"; updateHistory(); updateDashboard();}
-function toggleDark(){ document.body.classList.toggle("dark"); updateDashboard(); updateSidebar(); }
+function saveReceipt(){ if(count===0){ Swal.fire("Error","No items added","error"); return; } let profit=0; undoStack.forEach(i=>profit+=i.price*i.qty*0.45); receiptHistory.push({rno:document.getElementById("rNoPrint").innerText,date:new Date().toLocaleDateString(),shipTo:document.getElementById("custName").value,total,profit}); localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory)); Swal.fire("Saved","Receipt saved!","success"); document.querySelector("#previewTable tbody").innerHTML=""; total=0; count=0; undoStack=[]; document.getElementById("custName").value=""; document.getElementById("custAddress").value=""; document.getElementById("grandTotal").innerText="₱0"; updateHistory(); updateDashboard(); }
+function toggleDark(){ document.body.classList.toggle("dark"); updateDashboard(); }
 function printReceipt(){ window.print(); }
 function updateHistory(){ const el=document.getElementById("receiptHistory"); el.innerHTML=""; receiptHistory.forEach((r,i)=>{ el.innerHTML+=`<tr><td>${i+1}</td><td>${r.rno}</td><td>${r.date}</td><td>${r.shipTo}</td><td>₱${Math.round(r.total)}</td><td>₱${Math.round(r.profit)}</td><td><button class="btn btn-red btn-professional" onclick="del(${i})">Delete</button></td></tr>`; }); }
 function del(i){ receiptHistory.splice(i,1); localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory)); updateHistory(); updateDashboard(); }
@@ -256,5 +262,6 @@ function downloadQuotation(){
   });
 }
 </script>
+
 </body>
 </html>
