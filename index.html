@@ -125,7 +125,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
             <p>Receipt No.: <span id="rNoPrint"></span></p>
             <p>MOP: <span id="rPaymentPrint"></span></p>
             <div style="overflow-x:auto;">
-            <table class="table table-sm table-bordered" id="previewTable">
+            <table class="table table-sm " id="previewTable">
               <thead><tr><th style="width:5%;">No</th><th style="width:50%;">Description</th><th style="width:10%;">Qty</th><th style="width:15%;">Price</th><th style="width:20%;">Amount</th></tr></thead>
               <tbody></tbody>
               <tfoot>
@@ -139,11 +139,11 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
     </div>
 
     <!-- Receipt History -->
-    <div class="tab-pane fade" id="historyTab" role="tabpanel">
-      <div class="card p-3">
+    <div class="tab-pane fade" id="historyTab" role="tabpanel" >
+      <div class="card p-3" >
         <h5 style="color: #7995f2;">Receipt History</h5>
         <table class="table table-sm" id="historyTable">
-          <thead><tr><th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th></tr></thead>
+          <thead ><tr><th> No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th></tr></thead>
           <tbody id="receiptHistory"></tbody>
         </table>
         <div class="mb-2">
