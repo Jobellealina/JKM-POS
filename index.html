@@ -1,691 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>JKM Prime Digital Prints</title>
-
 <link rel="icon" href="logo.png">
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
 
 <style>
-
-*{box-sizing:border-box;}
-
-body{
-margin:0;
-font-family:Segoe UI;
-background:#eef2f7;
-color:#111;
-transition:.3s;
-font-family: 'Courier New', Courier, monospace;
-}
-
-body{
-background-image:url("BGG.jpg");
-background-size:cover;
-background-position:center;
-background-repeat:no-repeat;
-background-attachment:fixed;
-}
-
-body.dark{
-background:#0f172a;
-color:white;
-}
-
-/* NAVBAR */
-
-.navbar{
-display:flex;
-align-items:center;
-gap:10px;
-background:#0f172a;
-color:white;
-padding:14px 18px;
-}
-
-.navbar img{
-width:42px;
-height:42px;
-border-radius:6px;
-}
-
-.navbar h1{
-font-size:18px;
-margin:0;
-}
-
-.toggle-dark{
-margin-left:auto;
-background:#2563eb;
-border:none;
-color:white;
-padding:6px 12px;
-border-radius:4px;
-cursor:pointer;
-}
-
-/* MOBILE NAVBAR */
-
-@media(max-width:600px){
-
-.navbar{
-padding:16px;
-}
-
-.navbar img{
-width:48px;
-height:48px;
-}
-
-.navbar h1{
-font-size:20px;
-}
-
-}
-
-/* LAYOUT */
-
-.wrapper{
-display:grid;
-grid-template-columns:1.4fr 1fr;
-gap:18px;
-padding:16px;
-}
-
-@media(max-width:900px){
-.wrapper{
-grid-template-columns:1fr;
-}
-}
-
-/* CARD */
-
-.card{
-background:white;
-border-radius:10px;
-padding:15px;
-box-shadow:0 3px 12px rgba(0,0,0,0.1);
-}
-
-body.dark .card{
-background:#1e293b;
-}
-
-/* DASHBOARD */
-
-.dashboard{
-display:grid;
-grid-template-columns:1fr 1fr 1fr;
-gap:10px;
-}
-
-@media(max-width:600px){
-.dashboard{
-grid-template-columns:1fr;
-}
-}
-
-.box{
-padding:12px;
-border-radius:8px;
-font-weight:bold;
-text-align:center;
-}
-
-.sales{background:#93c5fd;}
-.profit{background:#22c55e;color:white;}
-.month{background:#fca5a5;}
-
-/* FORM */
-
-.form{
-display:grid;
-grid-template-columns:1fr 70px 90px 70px;
-gap:6px;
-margin-bottom:10px;
-}
-
-@media(max-width:500px){
-.form{
-grid-template-columns:1fr;
-}
-}
-
-input,select,button{
-padding:7px;
-font-size:12px;
-border-radius:4px;
-border:1px solid #ccc;
-}
-
-button{
-border:none;
-cursor:pointer;
-background:#2563eb;
-color:white;
-}
-
-.print{background:#22c55e;}
-.export{background:#9333ea;}
-.delete{background:#ef4444;}
-.undo{background:#f59e0b;}
-
-/* TABLE */
-
-.table-container{
-overflow-x:auto;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-font-size:12px;
-min-width:450px;
-}
-
-th{
-background:#f3f4f6;
-padding:4px 6px;
-font-size:11px;
-}
-
-td{
-padding:4px 6px;
-border-bottom:1px solid #eee;
-}
-
-/* DARK MODE TABLE */
-
-body.dark table{
-background:transparent;
-}
-
-body.dark th{
-background:#334155;
-color:white;
-}
-
-body.dark td{
-background:transparent;
-color:white;
-border-bottom:1px solid #475569;
-}
-
-/* RECEIPT */
-
-.receipt-header{
-display:flex;
-gap:10px;
-border-bottom:1px solid #ddd;
-padding-bottom:6px;
-margin-bottom:8px;
-}
-
-.shop-title{
-font-weight:bold;
-font-size:15px;
-}
-
-.shop-sub{
-font-size:11px;
-color:#666;
-}
-
-body.dark .shop-sub{
-color:#ccc;
-}
-
-/* WATERMARK */
-
-.watermark{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-width:120px;
-opacity:.3;
-}
-
-/* TOTAL */
-
-.total{
-text-align:right;
-font-weight:bold;
-margin-top:8px;
-font-size:13px;
-}
-
-/* PRINT A6 */
-
-@media print{
-
-body{
-background:white;
-color:black;
-}
-
-.navbar,.left{
-display:none;
-}
-
-#receiptToPrint{
-width:105mm;
-height:auto;
-font-size:10px;
-margin:0;
-
-}
-
-/* IMPORTANT FIX */
-table{
-min-width:0 !important;
-}
-
-#receiptTable{
-width:100%;
-border-collapse:collapse;
-table-layout:fixed;
-}
-
-#receiptTable th,
-#receiptTable td{
-padding:2px;
-font-size:7px;
-overflow:hidden;
-white-space:nowrap;
-text-overflow:ellipsis;
-}
-
-/* PERFECT A6 COLUMN WIDTH */
-
-#receiptTable th:nth-child(1),
-#receiptTable td:nth-child(1){
-width:6%;
-text-align:center;
-}
-
-#receiptTable th:nth-child(2),
-#receiptTable td:nth-child(2){
-width:44%;
-}
-
-#receiptTable th:nth-child(3),
-#receiptTable td:nth-child(3){
-width:10%;
-text-align:center;
-}
-
-#receiptTable th:nth-child(4),
-#receiptTable td:nth-child(4){
-width:20%;
-text-align:right;
-}
-
-#receiptTable th:nth-child(5),
-#receiptTable td:nth-child(5){
-width:20%;
-text-align:right;
-}
-
-.total{
-font-size:9px;
-margin-top:6px;
-}
-
-.watermark{
-width:90px;
-opacity:.25;
-}
-
-}
-
+body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; }
+body.dark { background:#0f172a; color:white; }
+.sidebar { height:100vh; max-height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; }
+.sidebar a { color:white; text-decoration:none; display:block; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
+.sidebar a:hover { background:#1e40af; color:#fff; }
+.sidebar a.active { background:#3b82f6; color:white; font-weight:600; }
+.card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
+body.dark .card { background:#1e293b; color:white; }
+input, select { transition:.3s; background:white; color:#111; font-size:13px; }
+body.dark input, body.dark select { background:#334155; color:white; border-color:#475569; }
+
+.btn-professional { width:83px; font-weight:600; border-radius:6px; padding:5px 0; color:white; text-align:center; transition:all .2s; font-size:13px; }
+.btn-blue { background:#2563eb; }
+.btn-red { background:#ef4444; }
+.btn-green { background:#22c55e; }
+.btn-blue:hover { background:#3b82f6; }
+.btn-red:hover { background:#f87171; }
+.btn-green:hover { background:#4ade80; }
+
+.print-area { width:105mm; padding:15px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
+body.dark .print-area { background:#1e293b; color:white; }
+.watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
+
+/* Tables */
+.table-sm th, .table-sm td { padding:4px; font-size:12px; border:none; }
+body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
+
+/* Responsive Sidebar */
+@media(max-width:768px){ .sidebar { width:100%; height:auto; } }
+
+/* Print */
+@media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:10px; } }
+
+/* Dashboard Columns */
+.dashboard-columns { display:flex; gap:15px; flex-wrap:wrap; }
+.dashboard-columns .card { flex:1 1 45%; }
 </style>
 </head>
-
 <body>
 
-<div class="navbar">
+<div class="d-flex">
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column p-3" style="width:220px;">
+    <img src="logo1.png" width="50" class="mb-3" style="border-radius: 10px; margin-left: 50px;"><br>
+    <h5>JKM Prime Digital Prints</h5>
+    <hr>
+    <nav class="nav flex-column" role="tablist">
+      <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
+      <a class="nav-link" id="receipt-tab" data-bs-toggle="tab" href="#receiptTab" role="tab">Add Receipt</a>
+      <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#historyTab" role="tab">Receipt History</a>
+      <a class="nav-link" id="quotation-tab" data-bs-toggle="tab" href="#quotationTab" role="tab">Quotation</a>
+    </nav>
+    <button class="btn btn-primary mt-auto" onclick="toggleDark()">🌙 Toggle Dark</button>
+  </div>
 
-<img src="logo.png">
+  <!-- Main Content -->
+  <div class="flex-grow-1 p-3">
+    <div class="tab-content">
 
-<h1>JKM Prime Digital Prints</h1>
+      <!-- Dashboard -->
+      <div class="tab-pane fade show active" id="dashboardTab" role="tabpanel">
+        <div class="dashboard-columns mb-3">
+          <div class="card p-3"><h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
+          <div class="card p-3 bg-success text-white"><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
+          <div class="card p-3 bg-primary text-white"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
+          <div class="card p-3 bg-danger text-white"><h6>Monthly Profit</h6><h4>₱ <span id="monthlyProfit">0</span></h4></div>
+        </div>
+        <div class="card p-3"><h5>Sales Diagram</h5><canvas id="salesChart" height="150"></canvas></div>
+      </div>
 
-<button class="toggle-dark" onclick="toggleDark()">🌙</button>
+      <!-- Add Receipt -->
+      <div class="tab-pane fade" id="receiptTab" role="tabpanel">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card p-3 mb-3">
+              <h5>Add Service</h5>
+              <div class="row g-2 mb-2">
+                <div class="col-md-5"><select id="item" class="form-select"></select></div>
+                <div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
+                <div class="col-md-3"><input type="number" id="price" class="form-control"></div>
+                <div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
+              </div>
+              <input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
+              <input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
+              <select id="paymentMethod" class="form-select mb-1">
+                <option>Cash</option>
+                <option>GCash</option>
+              </select>
+              <div class="mt-2">
+                <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
+                <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
+                <button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
+              </div>
+            </div>
+          </div>
 
+          <div class="col-md-6">
+            <div id="receiptPreview" class="print-area">
+              <img src="Watermark.png" class="watermark">
+              <div class="mb-2 text-center"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Printing & Digital Services</div>
+              <p>Name: <span id="rNamePrint"></span></p>
+              <p>Address: <span id="rAddressPrint"></span></p>
+              <p>Date: <span id="rDatePrint"></span></p>
+              <p>Receipt No.: <span id="rNoPrint"></span></p>
+              <p>MOP: <span id="rPaymentPrint"></span></p>
+              <table class="table table-sm" id="previewTable">
+                <thead><tr><th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>
+                <tbody></tbody>
+                <tfoot>
+                  <tr><th colspan="4" class="text-end"><br><br><br>TOTAL</th><th id="grandTotal"><br><br><br>0</th></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receipt History -->
+      <div class="tab-pane fade" id="historyTab" role="tabpanel">
+        <div class="card p-3">
+          <h5>Receipt History</h5>
+          <div class="mb-2">
+            <button class="btn btn-blue btn-professional" onclick="exportToExcel()">Export</button>
+          </div>
+          <table class="table table-sm" id="historyTable">
+            <thead><tr><th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th></tr></thead>
+            <tbody id="receiptHistory"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quotation -->
+      <div class="tab-pane fade" id="quotationTab" role="tabpanel">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card p-3 mb-3">
+              <h5>Create Quotation</h5>
+              <input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
+              <select id="qItemSelect" class="form-select mb-1"></select>
+              <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
+              <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
+              <div class="mt-2">
+                <button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
+                <button class="btn btn-green btn-professional" onclick="downloadQuotation()">Download</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div id="quotationPreview" class="print-area">
+              <img src="Watermark.png" class="watermark">
+              <div class="text-center mb-2"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Quotation for Order</div><br>
+              <p>Date: <span id="qDatePrint"></span></p>
+              <p>To: <span id="qNamePrint"></span></p>
+              <p id="quotationText"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
-<div class="wrapper">
-
-<div class="left">
-
-<div class="card">
-
-<h3>Business Dashboard</h3>
-
-<div class="dashboard">
-
-<div class="box sales">
-Daily Sales<br>
-₱ <span id="dailySales">0</span>
-</div>
-
-<div class="box profit">
-Daily Profit<br>
-₱ <span id="dailyProfit">0</span>
-</div>
-
-<div class="box month">
-Monthly Profit<br>
-₱ <span id="monthlyProfit">0</span>
-</div>
-
-</div>
-
-</div>
-
-<br>
-
-<div class="card">
-
-<h3>Add Service</h3>
-
-<div class="form">
-
-<select id="item"></select>
-
-<input type="number" id="qty" value="1">
-
-<input type="number" id="price">
-
-<button onclick="addItem()">ADD</button>
-
-</div>
-
-<input placeholder="Customer Name" id="custName">
-
-<input placeholder="Address" id="custAddress">
-
-<br><br>
-
-<select id="paymentMethod">
-<option>Cash</option>
-<option>GCash</option>
-</select>
-
-<br><br>
-
-<button onclick="saveReceipt()">DONE</button>
-
-<button class="print" onclick="printReceipt()">PRINT</button>
-
-<button class="export" onclick="exportExcel()">EXPORT</button>
-
-<button class="undo" onclick="undoItem()">UNDO</button>
-
-</div>
-
-<br>
-
-<div class="card">
-
-<h3>Receipt History</h3>
-
-<div class="table-container">
-
-<table>
-
-<thead>
-
-<tr>
-<th>No</th>
-<th>Receipt</th>
-<th>Date</th>
-<th>Customer</th>
-<th>Sales</th>
-<th>Profit</th>
-<th></th>
-</tr>
-
-</thead>
-
-<tbody id="receiptHistory"></tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="card" id="receiptToPrint" style="position:relative">
-
-<div class="receipt-header">
-
-<img src="logo.png" width="40">
-
-<div>
-
-<div class="shop-title">
-JKM Prime Digital Prints
-</div>
-
-<div class="shop-sub">
-Printing & Digital Services
-</div>
-
-</div>
-
-</div>
-
-<b>Name:</b> <span id="rNamePrint"></span><br>
-<b>Address:</b> <span id="rAddressPrint"></span><br>
-<b>Date:</b> <span id="rDatePrint"></span><br>
-<b>Receipt No:</b> <span id="rNoPrint"></span><br>
-<b>Mode of Payment:</b> <span id="rPaymentPrint"></span>
-
-<br><br>
-
-<img src="Watermark.png" class="watermark">
-
-<table id="receiptTable">
-
-<tr>
-<th>No</th>
-<th>Description</th>
-<th>Qty</th>
-<th>Price</th>
-<th>Amount</th>
-</tr>
-
-</table>
-
-<div class="total">
-TOTAL ₱ <span id="grandTotal">0</span>
-</div>
-
-</div>
-
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Populate items
+let items=[{name:"3R Photo Print",price:20},{name:"4R Photo Print",price:25},{name:"5R Photo Print",price:30},{name:"Rush ID Package 1",price:35},{name:"Rush ID Package 2",price:50},{name:"Rush ID Package 3",price:45},{name:"Rush ID Package 4",price:45},{name:"Rush ID Package 5",price:65},{name:"Typing Job",price:50},{name:"Document Print Short",price:7},{name:"Document Print A4",price:8},{name:"Document Print Long",price:10},{name:"Desk Calendar",price:150},{name:"A4 Sintra Board",price:140},{name:"A3 Sintra Board",price:290},{name:"B5 Notebook Chipboard Cover",price:199},{name:"A5 Notebook Chipboard Cover",price:95},{name:"A5 Notebook Photo Paper Cover",price:85},{name:"Composition Notebook",price:69}];
+function populateItems(){ let sel=document.getElementById("item"); let qsel=document.getElementById("qItemSelect"); sel.innerHTML='<option value="">Select Service</option>'; qsel.innerHTML='<option value="">Select Service</option>'; items.forEach(i=>{ sel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`; qsel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`; });}
+populateItems();
 
-let count=0
-let total=0
-let undoStack=[]
-let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]")
+// Variables
+let count=0,total=0,undoStack=[],receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]");
 
-let items=[
-
-{name:"3R Photo Print",price:20},
-{name:"4R Photo Print",price:25},
-{name:"5R Photo Print",price:30},
-
-{name:"Rush ID Package 1",price:35},
-{name:"Rush ID Package 2",price:50},
-{name:"Rush ID Package 3",price:45},
-{name:"Rush ID Package 4",price:45},
-{name:"Rush ID Package 5",price:65},
-
-{name:"Typing Job",price:50},
-
-{name:"Document Print Short",price:7},
-{name:"Document Print A4",price:8},
-{name:"Document Print Long",price:10},
-
-{name:"Desk Calendar",price:150},
-
-{name:"A4 Sintra Board",price:140},
-{name:"A3 Sintra Board",price:290},
-
-{name:"B5 Notebook Chipboard Cover",price:199},
-{name:"A5 Notebook Chipboard Cover",price:95},
-{name:"A5 Notebook Photo Paper Cover",price:85},
-{name:"Composition Notebook",price:69}
-
-]
-
-function populateItems(){
-
-const select=document.getElementById("item")
-
-select.innerHTML='<option value="">Service</option>'
-
-items.forEach(i=>{
-select.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`
-})
-
+// Add Receipt
+document.getElementById("item").addEventListener("change",function(){ document.getElementById("price").value=this.selectedOptions[0].dataset.price; });
+function addItem(){ 
+  const itemName=document.getElementById("item").value; 
+  const qty=Number(document.getElementById("qty").value); 
+  const price=Number(document.getElementById("price").value); 
+  if(!itemName) return; 
+  const amount=Math.round(qty*price); count++; total+=amount; undoStack.push({itemName,qty,price,amount}); 
+  let tbody=document.querySelector("#previewTable tbody"); 
+  let row=tbody.insertRow(); 
+  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td>`; 
+  document.getElementById("grandTotal").innerText=`₱${total}`;
+  updateReceiptHeader(); 
 }
+function undoItem(){ if(!undoStack.length) return; let last=undoStack.pop(); document.querySelector("#previewTable tbody").deleteRow(-1); total-=last.amount; count--; document.getElementById("grandTotal").innerText=`₱${total}`; }
+function updateReceiptHeader(){ document.getElementById("rNamePrint").innerText=document.getElementById("custName").value; document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value; document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString(); document.getElementById("rPaymentPrint").innerText=document.getElementById("paymentMethod").value; document.getElementById("rNoPrint").innerText="JKM"+Math.floor(Math.random()*90000+10000);}
+function saveReceipt(){ if(count===0){ Swal.fire("Error","No items added","error"); return; } let profit=0; undoStack.forEach(i=>profit+=i.price*i.qty*0.45); receiptHistory.push({rno:document.getElementById("rNoPrint").innerText,date:new Date().toLocaleDateString(),shipTo:document.getElementById("custName").value,total,profit}); localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory)); Swal.fire("Saved","Receipt saved!","success"); document.querySelector("#previewTable tbody").innerHTML=""; total=0; count=0; undoStack=[]; document.getElementById("custName").value=""; document.getElementById("custAddress").value=""; document.getElementById("grandTotal").innerText="₱0"; updateHistory(); updateDashboard();}
+function toggleDark(){ document.body.classList.toggle("dark"); updateDashboard(); updateSidebar(); }
+function printReceipt(){ window.print(); }
+function updateHistory(){ const el=document.getElementById("receiptHistory"); el.innerHTML=""; receiptHistory.forEach((r,i)=>{ el.innerHTML+=`<tr><td>${i+1}</td><td>${r.rno}</td><td>${r.date}</td><td>${r.shipTo}</td><td>₱${Math.round(r.total)}</td><td>₱${Math.round(r.profit)}</td><td><button class="btn btn-red btn-professional" onclick="del(${i})">Delete</button></td></tr>`; }); }
+function del(i){ receiptHistory.splice(i,1); localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory)); updateHistory(); updateDashboard(); }
 
-populateItems()
+// Export
+function exportToExcel(){ if(receiptHistory.length === 0){ Swal.fire("Error","No receipts to export","error"); return; } const ws = XLSX.utils.json_to_sheet(receiptHistory.map((r,i)=>({No:i+1,Receipt:r.rno,Date:r.date,Customer:r.shipTo,Sales:Math.round(r.total),Profit:Math.round(r.profit)}))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Receipts"); XLSX.writeFile(wb, "receipt_history.xlsx"); }
 
-document.getElementById("item").addEventListener("change",function(){
+// Dashboard chart
+const ctx = document.getElementById('salesChart').getContext('2d');
+let salesChart = new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'Daily Sales',data:[],backgroundColor:'rgba(37,99,235,0.7)'},{label:'Daily Profit',data:[],backgroundColor:'rgba(34,197,94,0.7)'},{label:'Monthly Sales',data:[],backgroundColor:'rgba(59,130,246,0.7)'},{label:'Monthly Profit',data:[],backgroundColor:'rgba(239,68,68,0.7)'}]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+function updateDashboard(){ 
+  let today=new Date().toLocaleDateString();
+  let dailySales=0,dailyProfit=0,monthlySales=0,monthlyProfit=0;
+  let salesLabels=[], salesData=[], profitData=[];
+  receiptHistory.forEach(r=>{
+    if(r.date===today){ dailySales+=r.total; dailyProfit+=r.profit; }
+    monthlySales+=r.total; monthlyProfit+=r.profit;
+    salesLabels.push(r.date); salesData.push(r.total); profitData.push(Math.round(r.profit));
+  });
+  document.getElementById("dailySales").innerText=Math.round(dailySales);
+  document.getElementById("dailyProfit").innerText=Math.round(dailyProfit);
+  document.getElementById("monthlySales").innerText=Math.round(monthlySales);
+  document.getElementById("monthlyProfit").innerText=Math.round(monthlyProfit);
 
-const sel=this.options[this.selectedIndex]
-
-document.getElementById("price").value=sel.dataset.price
-
-})
-
-function addItem(){
-
-const itemName=document.getElementById("item").value
-const qty=Number(document.getElementById("qty").value)
-const price=Number(document.getElementById("price").value)
-
-if(!itemName)return
-
-const amount=qty*price
-
-count++
-total+=amount
-
-document.getElementById("receiptTable").innerHTML+=`
-<tr>
-<td>${count}</td>
-<td>${itemName}</td>
-<td>${qty}</td>
-<td>₱${price}</td>
-<td>₱${amount}</td>
-</tr>`
-
-document.getElementById("grandTotal").innerText=total
-
-const rno="JKM"+Math.floor(Math.random()*90000+10000)
-
-document.getElementById("rNamePrint").innerText=document.getElementById("custName").value||"Walk-in"
-document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value||"N/A"
-document.getElementById("rPaymentPrint").innerText=document.getElementById("paymentMethod").value
-document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString()
-document.getElementById("rNoPrint").innerText=rno
-
+  salesChart.data.labels = salesLabels;
+  salesChart.data.datasets[0].data = salesData;
+  salesChart.data.datasets[1].data = profitData;
+  salesChart.data.datasets[2].data = salesData;
+  salesChart.data.datasets[3].data = profitData;
+  salesChart.update();
 }
+updateHistory();
+updateDashboard();
 
-function saveReceipt(){
-
-let profit=0
-
-document.querySelectorAll("#receiptTable tr").forEach((row,i)=>{
-
-if(i==0)return
-
-const t=row.querySelectorAll("td")
-
-const qty=Number(t[2].innerText)
-const price=Number(t[3].innerText.replace("₱",""))
-
-profit+=price*qty*0.45
-
-})
-
-const receipt={
-rno:document.getElementById("rNoPrint").innerText,
-date:new Date().toLocaleDateString(),
-shipTo:document.getElementById("custName").value||"Walk-in",
-total,
-profit
+// Quotation
+document.getElementById('qItemSelect').addEventListener('change',function(){ document.getElementById('qUnitPrice').value=this.selectedOptions[0].dataset.price; });
+function generateQuotation(){
+  const name=document.getElementById('qCustName').value; const item=document.getElementById('qItemSelect').value; const qty=Number(document.getElementById('qQty').value); const unit=Number(document.getElementById('qUnitPrice').value); 
+  if(!name||!item||!qty||!unit){ Swal.fire("Error","Fill all fields","error"); return; }
+  document.getElementById('qDatePrint').innerText=new Date().toLocaleDateString();
+  document.getElementById('qNamePrint').innerText=name;
+  const total=qty*unit;
+  document.getElementById('quotationText').innerHTML=`Item: ${item}<br>Quantity: ${qty}<br>Unit Price: ₱${unit}<br>Total Amount: ₱${total}<br><br>Notes:<br>• Price includes customization.<br>• 50% downpayment required.<br>• Balance upon delivery.<br>• Production starts after downpayment. <br><br> Sincerly, <br> JKM PRIME DIGITAL PRINTS`;
 }
-
-receiptHistory.push(receipt)
-
-localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory))
-
-updateHistory()
-
-Swal.fire("Saved","Receipt saved!","success")
-
+function downloadQuotation(){
+  html2canvas(document.getElementById('quotationPreview')).then(canvas=>{
+    let link=document.createElement('a');
+    link.download='quotation.png';
+    link.href=canvas.toDataURL();
+    link.click();
+  });
 }
-
-function updateHistory(){
-
-const el=document.getElementById("receiptHistory")
-
-el.innerHTML=""
-
-receiptHistory.forEach((r,i)=>{
-
-el.innerHTML+=`
-<tr>
-<td>${i+1}</td>
-<td>${r.rno}</td>
-<td>${r.date}</td>
-<td>${r.shipTo}</td>
-<td>₱${r.total}</td>
-<td>₱${r.profit}</td>
-<td><button class="delete" onclick="del(${i})">X</button></td>
-</tr>`
-
-})
-
-}
-
-function del(i){
-
-receiptHistory.splice(i,1)
-
-localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory))
-
-updateHistory()
-
-}
-
-function toggleDark(){
-document.body.classList.toggle("dark")
-}
-
-function printReceipt(){
-window.print()
-}
-
-updateHistory()
-
 </script>
-
 </body>
 </html>
