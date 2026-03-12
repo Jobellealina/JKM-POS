@@ -35,11 +35,11 @@ body.dark input, body.dark select { background:#334155; color:white; border-colo
 .btn-red:hover { background:#f87171; }
 .btn-green:hover { background:#4ade80; }
 
-.print-area { width:105mm; padding:15px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
+.print-area { width:105mm; padding:10px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
 body.dark .print-area { background:#1e293b; color:white; }
 .watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
 
-.table-sm th, .table-sm td { padding:4px; font-size:12px; border:none; }
+.table-sm th, .table-sm td { padding:2px 4px; font-size:11px; border:none; white-space: nowrap; text-align:center; }
 body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
 
 .main-content { margin-left:220px; padding:1rem; min-height:100vh; }
@@ -58,6 +58,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 @media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:10px; } }
 
 .tab-content > .tab-pane { min-height: calc(100vh - 2rem); overflow-y:auto; }
+
 </style>
 </head>
 <body>
@@ -80,7 +81,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
   <div class="tab-content">
     <!-- Dashboard -->
     <div class="tab-pane fade show active" id="dashboardTab" role="tabpanel">
-      <div class="dashboard-columns mb-3">
+      <div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
         <div class="card p-3 bg-secondary text-white"><h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
         <div class="card p-3 bg-success text-white"><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
         <div class="card p-3 bg-primary text-white"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
@@ -107,7 +108,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
               <option>Cash</option>
               <option>GCash</option>
             </select>
-            <div class="mt-2">
+            <div class="mt-2 d-flex gap-1 flex-wrap">
               <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
               <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
               <button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
@@ -117,19 +118,21 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
         <div class="col-md-6">
           <div id="receiptPreview" class="print-area">
             <img src="Watermark.png" class="watermark">
-            <div class="mb-2 text-center"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Printing & Digital Services</div>
+            <div class="mb-2 text-center"><img src="logo.png" width="50"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Printing & Digital Services</div>
             <p>Name: <span id="rNamePrint"></span></p>
             <p>Address: <span id="rAddressPrint"></span></p>
             <p>Date: <span id="rDatePrint"></span></p>
             <p>Receipt No.: <span id="rNoPrint"></span></p>
             <p>MOP: <span id="rPaymentPrint"></span></p>
-            <table class="table table-sm" id="previewTable">
-              <thead><tr><th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>
+            <div style="overflow-x:auto;">
+            <table class="table table-sm table-bordered" id="previewTable">
+              <thead><tr><th style="width:5%;">No</th><th style="width:50%;">Description</th><th style="width:10%;">Qty</th><th style="width:15%;">Price</th><th style="width:20%;">Amount</th></tr></thead>
               <tbody></tbody>
               <tfoot>
                 <tr><th colspan="4" class="text-end">TOTAL</th><th id="grandTotal">0</th></tr>
               </tfoot>
             </table>
+            </div>
           </div>
         </div>
       </div>
@@ -182,6 +185,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// FULL JS CODE HERE (Same as your last working JS)
 // ---------- FULL JS FUNCTIONALITY ----------
 
 // Item list
@@ -445,5 +449,6 @@ function downloadQuotation() {
 updateHistory();
 updateDashboard();
 </script>
+
 </body>
 </html>
