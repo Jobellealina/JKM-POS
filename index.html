@@ -11,443 +11,379 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
-
 <style>
 body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; margin:0; }
 body.dark { background:#0f172a; color:white; overflow-x:hidden; }
-
 .sidebar { height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
 .sidebar a { color:white; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
 .sidebar a:hover { background:#1e40af; color:#fff; }
 .sidebar a.active { background:#3b82f6; color:white; font-weight:600; }
 .sidebar .toggle-btn { margin-top:auto; }
-
 .card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
 body.dark .card { background:#1e293b; color:white; }
 input, select { transition:.3s; background:white; color:#111; font-size:13px; }
 body.dark input, body.dark select { background:#334155; color:white; border-color:#475569; }
-
 .btn-professional { width:83px; font-weight:600; border-radius:6px; padding:5px 0; color:white; text-align:center; transition:all .2s; font-size:13px; }
-.btn-blue { background:#2563eb; }
-.btn-red { background:#ef4444; }
-.btn-green { background:#22c55e; }
-.btn-blue:hover { background:#3b82f6; }
-.btn-red:hover { background:#f87171; }
-.btn-green:hover { background:#4ade80; }
-
+.btn-blue { background:#2563eb; } .btn-red { background:#ef4444; } .btn-green { background:#22c55e; }
+.btn-blue:hover { background:#3b82f6; } .btn-red:hover { background:#f87171; } .btn-green:hover { background:#4ade80; }
 .print-area { width:105mm; padding:10px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
 body.dark .print-area { background:#1e293b; color:white; }
 .watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
-
 .table-sm th, .table-sm td { padding:2px 4px; font-size:11px; border:none; white-space: nowrap; text-align:center; }
 body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
-
 .main-content { margin-left:220px; padding:1rem; min-height:100vh; }
-
+.history-table-wrapper{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
 @media(max-width:768px){
-  .sidebar { width:80px; padding:0.5rem 0; }
-  .sidebar a { justify-content:center; padding:10px 0; flex-direction:column; font-size:11px; }
-  .sidebar h5 { display:none; }
-  .sidebar img { display:block; width:50px; height:50px; margin:0 auto 10px; }
-  .main-content { margin-left:80px; padding:0.5rem; }
-  .card { font-size:12px; }
-  .print-area { width:100%; padding:10px; font-size:11px; }
-  .dashboard-columns .card { flex:1 1 100%; }
+.history-table-wrapper table{ min-width:600px; }
+.history-table-wrapper th, .history-table-wrapper td{ text-align:left !important; }
+.sidebar { width:80px; padding:0.5rem 0; }
+.sidebar a { justify-content:center; padding:10px 0; flex-direction:column; font-size:11px; }
+.sidebar h5 { display:none; }
+.sidebar img { display:block; width:50px; height:50px; margin:0 auto 10px; }
+.main-content { margin-left:80px; padding:0.5rem; }
+.card { font-size:12px; }
+.print-area { width:100%; padding:10px; font-size:11px; }
+.dashboard-columns .card { flex:1 1 100%; }
 }
-
 @media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:10px; } }
-
 .tab-content > .tab-pane { min-height: calc(100vh - 2rem); overflow-y:auto; }
-
 </style>
 </head>
 <body>
 
 <!-- Sidebar -->
 <div class="sidebar">
-  <img src="logo1.png" class="mb-3 mx-auto" style="border-radius:10px; height: 50px; width: 50px;">
-  <h5 class="text-center mb-3">JKM Prime</h5>
-  <nav class="nav flex-column" role="tablist">
-    <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboardTab" role="tab"><i class="bi bi-speedometer2 fs-5"></i><span class="d-none d-md-inline">Dashboard</span></a>
-    <a class="nav-link" id="receipt-tab" data-bs-toggle="tab" href="#receiptTab" role="tab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a>
-    <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#historyTab" role="tab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a>
-    <a class="nav-link" id="quotation-tab" data-bs-toggle="tab" href="#quotationTab" role="tab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a>
-  </nav>
-  <button class="btn btn-primary toggle-btn mx-auto mt-3" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
+<img src="logo1.png" class="mb-3 mx-auto" style="border-radius:10px; height:50px; width:50px;">
+<h5 class="text-center mb-3">JKM Prime Digital Prints</h5><br>
+<nav class="nav flex-column" role="tablist">
+<a class="nav-link active" data-bs-toggle="tab" href="#dashboardTab"><i class="bi bi-speedometer2 fs-5"></i><span class="d-none d-md-inline">Dashboard</span></a><br>
+<a class="nav-link" data-bs-toggle="tab" href="#receiptTab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a><br>
+<a class="nav-link" data-bs-toggle="tab" href="#historyTab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a><br>
+<a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a>
+</nav><br>
+<button class="btn btn-primary toggle-btn mx-auto mt-3" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
 </div>
 
 <!-- Main Content -->
 <div class="main-content">
-  <div class="tab-content">
-    <!-- Dashboard -->
-    <div class="tab-pane fade show active" id="dashboardTab" role="tabpanel">
-      <div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
-        <div class="card p-3 bg-secondary text-white"><h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
-        <div class="card p-3 bg-success text-white"><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
-        <div class="card p-3 bg-primary text-white"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
-        <div class="card p-3 bg-danger text-white"><h6>Monthly Profit</h6><h4>₱ <span id="monthlyProfit">0</span></h4></div>
-      </div>
-      <div class="card p-3"><h5>Sales Diagram</h5><canvas id="salesChart" height="150"></canvas></div>
-    </div>
+<div class="tab-content">
 
-    <!-- Add Receipt -->
-    <div class="tab-pane fade" id="receiptTab" role="tabpanel">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card p-3 mb-3">
-            <h5>Add Service</h5>
-            <div class="row g-2 mb-2">
-              <div class="col-md-5"><select id="item" class="form-select"></select></div>
-              <div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
-              <div class="col-md-3"><input type="number" id="price" class="form-control"></div>
-              <div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
-            </div>
-            <input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
-            <input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
-            <select id="paymentMethod" class="form-select mb-1">
-              <option>Cash</option>
-              <option>GCash</option>
-            </select>
-            <div class="mt-2 d-flex gap-1 flex-wrap">
-              <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
-              <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
-              <button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div id="receiptPreview" class="print-area">
-            <img src="Watermark.png" class="watermark">
-            <div class="mb-2 text-center"><img src="logo.png" width="50"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Printing & Digital Services</div>
-            <p>Name: <span id="rNamePrint"></span></p>
-            <p>Address: <span id="rAddressPrint"></span></p>
-            <p>Date: <span id="rDatePrint"></span></p>
-            <p>Receipt No.: <span id="rNoPrint"></span></p>
-            <p>MOP: <span id="rPaymentPrint"></span></p>
-            <div style="overflow-x:auto;">
-            <table class="table table-sm " id="previewTable">
-              <thead><tr><th style="width:5%;">No</th><th style="width:50%;">Description</th><th style="width:10%;">Qty</th><th style="width:15%;">Price</th><th style="width:20%;">Amount</th></tr></thead>
-              <tbody></tbody>
-              <tfoot>
-                <tr><th colspan="4" class="text-end">TOTAL</th><th id="grandTotal">0</th></tr>
-              </tfoot>
-            </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- Dashboard -->
+<div class="tab-pane fade show active" id="dashboardTab">
+<div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
+<div class="card p-3 bg-secondary text-white"><h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
+<div class="card p-3 bg-success text-white"><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
+<div class="card p-3 bg-primary text-white"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
+<div class="card p-3 bg-danger text-white"><h6>Monthly Profit</h6><h4>₱ <span id="monthlyProfit">0</span></h4></div>
+</div>
+<div class="card p-3">
+<h5>Sales Diagram</h5>
+<canvas id="salesChart" height="150"></canvas>
+</div>
+</div>
 
-    <!-- Receipt History -->
-    <div class="tab-pane fade" id="historyTab" role="tabpanel" >
-      <div class="card p-3" >
-        <h5 style="color: #7995f2;">Receipt History</h5>
-        <table class="table table-sm" id="historyTable">
-          <thead ><tr><th> No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th></tr></thead>
-          <tbody id="receiptHistory"></tbody>
-        </table>
-        <div class="mb-2">
-          <button class="btn btn-blue btn-professional" onclick="exportToExcel()">Export</button>
-        </div>
-      </div>
-    </div>
+<!-- Add Receipt -->
+<div class="tab-pane fade" id="receiptTab">
+<div class="row">
+<div class="col-md-6">
+<div class="card p-3 mb-3">
+<h5>Add Service</h5>
+<div class="row g-2 mb-2">
+<div class="col-md-5"><select id="item" class="form-select"></select></div>
+<div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
+<div class="col-md-3"><input type="number" id="price" class="form-control"></div>
+<div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
+</div>
+<input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
+<input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
+<select id="paymentMethod" class="form-select mb-1">
+<option>Cash</option><option>GCash</option>
+</select>
+<div class="mt-2 d-flex gap-1 flex-wrap">
+<button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
+<button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
+<button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
+</div>
+</div>
+</div>
 
-    <!-- Quotation -->
-    <div class="tab-pane fade" id="quotationTab" role="tabpanel">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card p-3 mb-3">
-            <h5>Create Quotation</h5>
-            <input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
-            <select id="qItemSelect" class="form-select mb-1"></select>
-            <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
-            <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
-            <div class="mt-2">
-              <button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
-              <button class="btn btn-green btn-professional" onclick="downloadQuotation()">Download</button>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div id="quotationPreview" class="print-area">
-            <img src="Watermark.png" class="watermark">
-            <div class="text-center mb-2"><img src="logo.png" width="60"><br><strong>JKM PRIME DIGITAL PRINTS</strong><br>Quotation for Order</div><br>
-            <p>Date: <span id="qDatePrint"></span></p>
-            <p>To: <span id="qNamePrint"></span></p>
-            <p id="quotationText"></p>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="col-md-6">
+<div id="receiptPreview" class="print-area">
+<img src="Watermark.png" class="watermark">
+<div class="mb-2 text-center">
+<img src="logo.png" width="50"><br>
+<strong>JKM PRIME DIGITAL PRINTS</strong><br>
+Printing & Digital Services
+</div>
+<p>Name: <span id="rNamePrint"></span></p>
+<p>Address: <span id="rAddressPrint"></span></p>
+<p>Date: <span id="rDatePrint"></span></p>
+<p>Receipt No.: <span id="rNoPrint"></span></p>
+<p>MOP: <span id="rPaymentPrint"></span></p>
+<div style="overflow-x:auto;">
+<table class="table table-sm" id="previewTable">
+<thead>
+<tr>
+<th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr>
+<th colspan="4" class="text-end">TOTAL</th>
+<th id="grandTotal">0</th>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
 
-  </div>
+<!-- Receipt History -->
+<div class="tab-pane fade" id="historyTab">
+<div class="card p-3">
+<h5 style="color:#7995f2;">Receipt History</h5>
+<div class="row mb-2">
+<div class="col-md-3"><input type="date" id="fromDate" class="form-control" placeholder="From Date"></div>
+<div class="col-md-3"><input type="date" id="toDate" class="form-control" placeholder="To Date"></div>
+<div class="col-md-3"><input type="text" id="searchInput" class="form-control" placeholder="Search Name or Receipt No."></div>
+<div class="col-md-3"><button class="btn btn-blue btn-professional" onclick="applyFilters()">Filter</button></div>
+</div>
+<div class="history-table-wrapper">
+<table class="table table-sm" id="historyTable">
+<thead>
+<tr>
+<th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="receiptHistory"></tbody>
+</table>
+</div>
+<div class="mb-2">
+<button class="btn btn-blue btn-professional" onclick="exportToExcel()">Export</button>
+</div>
+</div>
+</div>
+
+<!-- Quotation Tab -->
+<div class="tab-pane fade" id="quotationTab">
+<div class="row">
+<div class="col-md-6">
+<div class="card p-3 mb-3">
+<h5>Create Quotation</h5>
+<input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
+<select id="qItemSelect" class="form-select mb-1"></select>
+<input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
+<input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
+<div class="mt-2 d-flex gap-1 flex-wrap">
+<button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
+<button class="btn btn-green btn-professional" onclick="downloadQuotation()">Download</button>
+</div>
+</div>
+</div>
+
+<div class="col-md-6">
+<div id="quotationPreview" class="print-area">
+<img src="Watermark.png" class="watermark">
+<div class="text-center mb-2">
+<img src="logo.png" width="60"><br>
+<strong>JKM PRIME DIGITAL PRINTS</strong><br>
+Quotation for Order
+</div>
+<br>
+<p>Date: <span id="qDatePrint"></span></p>
+<p>To: <span id="qNamePrint"></span></p>
+<p id="quotationText"></p>
+</div>
+</div>
+</div>
+</div>
+
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// FULL JS CODE HERE (Same as your last working JS)
-// ---------- FULL JS FUNCTIONALITY ----------
-
-// Item list
-let items = [
-    { name: "3R Photo Print", price: 20 }, { name: "4R Photo Print", price: 25 },
-    { name: "5R Photo Print", price: 30 }, { name: "Rush ID Package 1", price: 35 },
-    { name: "Rush ID Package 2", price: 50 }, { name: "Rush ID Package 3", price: 45 },
-    { name: "Rush ID Package 4", price: 45 }, { name: "Rush ID Package 5", price: 65 },
-    { name: "Typing Job", price: 50 }, { name: "Document Print Short", price: 7 },
-    { name: "Document Print A4", price: 8 }, { name: "Document Print Long", price: 10 },
-    { name: "Desk Calendar", price: 150 }, { name: "A4 Sintra Board", price: 140 },
-    { name: "A3 Sintra Board", price: 290 }, { name: "B5 Notebook Chipboard Cover", price: 199 },
-    { name: "A5 Notebook Chipboard Cover", price: 95 }, { name: "A5 Notebook Photo Paper Cover", price: 85 },
-    { name: "Composition Notebook", price: 69 }
+//--- JS CODE
+let items=[
+  {name:"3R Photo Print",price:20},{name:"4R Photo Print",price:25},{name:"5R Photo Print",price:30},
+  {name:"Rush ID Package 1",price:35},{name:"Rush ID Package 2",price:50},{name:"Rush ID Package 3",price:45},
+  {name:"Rush ID Package 4",price:45},{name:"Rush ID Package 5",price:65},{name:"Typing Job",price:50},
+  {name:"Document Print Short",price:7},{name:"Document Print A4",price:8},{name:"Document Print Long",price:10},
+  {name:"Desk Calendar",price:150},{name:"A4 Sintra Board",price:140},{name:"A3 Sintra Board",price:290},
+  {name:"B5 Notebook Chipboard Cover",price:199},{name:"A5 Notebook Chipboard Cover",price:95},
+  {name:"A5 Notebook Photo Paper Cover",price:85},{name:"Composition Notebook",price:69}
 ];
 
-// Populate item selects
-function populateItems() {
-    let sel = document.getElementById("item");
-    let qsel = document.getElementById("qItemSelect");
-    sel.innerHTML = '<option value="">Select Service</option>';
-    qsel.innerHTML = '<option value="">Select Service</option>';
-    items.forEach(i => {
-        sel.innerHTML += `<option value="${i.name}" data-price="${i.price}">${i.name}</option>`;
-        qsel.innerHTML += `<option value="${i.name}" data-price="${i.price}">${i.name}</option>`;
-    });
+function populateItems(){
+  let sel=document.getElementById("item");
+  let qsel=document.getElementById("qItemSelect");
+  sel.innerHTML='<option value="">Select Service</option>';
+  qsel.innerHTML='<option value="">Select Service</option>';
+  items.forEach(i=>{
+    sel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`;
+    qsel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`;
+  });
 }
 populateItems();
 
-// Variables
-let count = 0, total = 0, undoStack = [];
-let receiptHistory = JSON.parse(localStorage.getItem("receiptHistory") || "[]");
+let count=0,total=0,undoStack=[];
+let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]");
 
-// Item select sets price automatically
-document.getElementById("item").addEventListener("change", function () {
-    document.getElementById("price").value = this.selectedOptions[0].dataset.price;
+document.getElementById("item").addEventListener("change",function(){
+  document.getElementById("price").value=this.selectedOptions[0].dataset.price;
 });
 
-// Add item to receipt
-function addItem() {
-    const itemName = document.getElementById("item").value;
-    const qty = Number(document.getElementById("qty").value);
-    const price = Number(document.getElementById("price").value);
-    if (!itemName) return;
-
-    const amount = Math.round(qty * price);
-    count++;
-    total += amount;
-    undoStack.push({ itemName, qty, price, amount });
-
-    let tbody = document.querySelector("#previewTable tbody");
-    let row = tbody.insertRow();
-    row.innerHTML = `<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td>`;
-    document.getElementById("grandTotal").innerText = `₱${total}`;
-    updateReceiptHeader();
+function addItem(){
+  const itemName=document.getElementById("item").value;
+  const qty=Number(document.getElementById("qty").value);
+  const price=Number(document.getElementById("price").value);
+  if(!itemName) return;
+  const amount=Math.round(qty*price);
+  count++;
+  total+=amount;
+  undoStack.push({itemName,qty,price,amount});
+  let tbody=document.querySelector("#previewTable tbody");
+  let row=tbody.insertRow();
+  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td>`;
+  document.getElementById("grandTotal").innerText=`₱${total}`;
+  updateReceiptHeader();
 }
 
-// Undo last item
-function undoItem() {
-    if (!undoStack.length) return;
-    let last = undoStack.pop();
-    document.querySelector("#previewTable tbody").deleteRow(-1);
-    total -= last.amount;
-    count--;
-    document.getElementById("grandTotal").innerText = `₱${total}`;
+function undoItem(){
+  if(!undoStack.length) return;
+  let last=undoStack.pop();
+  document.querySelector("#previewTable tbody").deleteRow(-1);
+  total-=last.amount;
+  count--;
+  document.getElementById("grandTotal").innerText=`₱${total}`;
 }
 
-// Update receipt header
-function updateReceiptHeader() {
-    document.getElementById("rNamePrint").innerText = document.getElementById("custName").value;
-    document.getElementById("rAddressPrint").innerText = document.getElementById("custAddress").value;
-    document.getElementById("rDatePrint").innerText = new Date().toLocaleDateString();
-    document.getElementById("rPaymentPrint").innerText = document.getElementById("paymentMethod").value;
-    document.getElementById("rNoPrint").innerText = "JKM" + Math.floor(Math.random() * 90000 + 10000);
+function updateReceiptHeader(){
+  document.getElementById("rNamePrint").innerText=document.getElementById("custName").value;
+  document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value;
+  document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString();
+  document.getElementById("rPaymentPrint").innerText=document.getElementById("paymentMethod").value;
+  document.getElementById("rNoPrint").innerText="JKM"+Math.floor(Math.random()*90000+10000);
 }
 
-// Save receipt
-function saveReceipt() {
-    if (count === 0) { Swal.fire("Error", "No items added", "error"); return; }
-    let profit = 0;
-    undoStack.forEach(i => profit += i.price * i.qty * 0.45);
-
-    receiptHistory.push({
-        rno: document.getElementById("rNoPrint").innerText,
-        date: new Date().toLocaleDateString(),
-        shipTo: document.getElementById("custName").value,
-        total, profit
-    });
-
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-    Swal.fire("Saved", "Receipt saved!", "success");
-
-    // Clear preview
-    document.querySelector("#previewTable tbody").innerHTML = "";
-    total = 0; count = 0; undoStack = [];
-    document.getElementById("custName").value = "";
-    document.getElementById("custAddress").value = "";
-    document.getElementById("grandTotal").innerText = "₱0";
-    updateHistory();
-    updateDashboard();
+function saveReceipt(){
+  if(count===0){Swal.fire("Error","No items added","error");return;}
+  let profit=0;undoStack.forEach(i=>profit+=i.price*i.qty*0.45);
+  receiptHistory.push({rno:document.getElementById("rNoPrint").innerText,date:new Date().toLocaleDateString(),shipTo:document.getElementById("custName").value,total,profit});
+  localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
+  Swal.fire("Saved","Receipt saved!","success");
+  document.querySelector("#previewTable tbody").innerHTML="";
+  total=0;count=0;undoStack=[];
+  document.getElementById("custName").value="";
+  document.getElementById("custAddress").value="";
+  document.getElementById("grandTotal").innerText="₱0";
+  updateHistory();updateDashboard();
 }
 
-// Toggle dark mode
-function toggleDark() {
-    document.body.classList.toggle("dark");
-    updateDashboard();
+function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
+function printReceipt(){window.print();}
+
+function updateHistory(filterFn){
+  const el=document.getElementById("receiptHistory");if(!el) return;el.innerHTML="";
+  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
+  data.forEach((r,i)=>{el.innerHTML+=`<tr><td>${i+1}</td><td>${r.rno}</td><td>${r.date}</td><td>${r.shipTo}</td><td>₱${Math.round(r.total)}</td><td>₱${Math.round(r.profit)}</td><td><button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">❌</button></td></tr>`;});
 }
 
-// Print receipt
-function printReceipt() {
-    window.print();
-}
-
-// Update receipt history table
-function updateHistory() {
-    const el = document.getElementById("receiptHistory");
-    if(!el) return; // skip if history tab not in DOM yet
-    el.innerHTML = "";
-    receiptHistory.forEach((r, i) => {
-        el.innerHTML += `<tr>
-            <td>${i + 1}</td>
-            <td>${r.rno}</td>
-            <td>${r.date}</td>
-            <td>${r.shipTo}</td>
-            <td>₱${Math.round(r.total)}</td>
-            <td>₱${Math.round(r.profit)}</td>
-            <td><button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">❌</button></td>
-        </tr>`;
-    });
-}
-
-// Delete receipt
-function deleteReceipt(idx) {
-    Swal.fire({
-        title: "Delete?",
-        text: "Are you sure?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes"
-    }).then(res => {
-        if (res.isConfirmed) {
-            receiptHistory.splice(idx, 1);
-            localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-            updateHistory();
-            updateDashboard();
-            Swal.fire("Deleted", "Receipt removed", "success");
-        }
-    });
-}
-
-// Export to Excel
-function exportToExcel() {
-    if (receiptHistory.length === 0) { Swal.fire("Error", "No receipts to export", "error"); return; }
-    const ws = XLSX.utils.json_to_sheet(receiptHistory.map((r, i) => ({
-        No: i + 1, Receipt: r.rno, Date: r.date, Customer: r.shipTo, Sales: Math.round(r.total), Profit: Math.round(r.profit)
-    })));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Receipts");
-    XLSX.writeFile(wb, "receipt_history.xlsx");
-}
-
-// ---------- Chart.js Dashboard ----------
-
-const ctx = document.getElementById('salesChart')?.getContext('2d');
-let salesChart;
-if (ctx) {
-    salesChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [
-                { label: 'Daily Sales', data: [], backgroundColor: 'rgba(37, 99, 235, 0.7)' },
-                { label: 'Daily Profit', data: [], backgroundColor: 'rgba(34, 197, 94, 0.7)' },
-                { label: 'Monthly Sales', data: [], backgroundColor: 'rgba(59, 130, 246, 0.7)' },
-                { label: 'Monthly Profit', data: [], backgroundColor: 'rgba(239, 68, 68, 0.7)' }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-}
-
-// Update dashboard cards and chart
-function updateDashboard() {
-    const today = new Date();
-    const thisMonth = today.getMonth();
-
-    let dailySales = 0, dailyProfit = 0, monthlySales = 0, monthlyProfit = 0;
-    let labels = [], dailySalesData = [], dailyProfitData = [], monthlySalesData = [], monthlyProfitData = [];
-
-    receiptHistory.forEach(r => {
-        const rDate = new Date(r.date);
-        labels.push(r.date);
-
-        if (r.date === today.toLocaleDateString()) {
-            dailySales += r.total;
-            dailyProfit += r.profit;
-        }
-
-        if (rDate.getMonth() === thisMonth) {
-            monthlySales += r.total;
-            monthlyProfit += r.profit;
-        }
-
-        dailySalesData.push(r.date === today.toLocaleDateString() ? r.total : 0);
-        dailyProfitData.push(r.date === today.toLocaleDateString() ? r.profit : 0);
-        monthlySalesData.push(rDate.getMonth() === thisMonth ? r.total : 0);
-        monthlyProfitData.push(rDate.getMonth() === thisMonth ? r.profit : 0);
-    });
-
-    document.getElementById("dailySales") && (document.getElementById("dailySales").innerText = dailySales);
-    document.getElementById("dailyProfit") && (document.getElementById("dailyProfit").innerText = Math.round(dailyProfit));
-    document.getElementById("monthlySales") && (document.getElementById("monthlySales").innerText = monthlySales);
-    document.getElementById("monthlyProfit") && (document.getElementById("monthlyProfit").innerText = Math.round(monthlyProfit));
-
-    if (salesChart) {
-        salesChart.data.labels = labels;
-        salesChart.data.datasets[0].data = dailySalesData;
-        salesChart.data.datasets[1].data = dailyProfitData;
-        salesChart.data.datasets[2].data = monthlySalesData;
-        salesChart.data.datasets[3].data = monthlyProfitData;
-        salesChart.update();
+function deleteReceipt(idx){
+  Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
+    if(res.isConfirmed){
+      receiptHistory.splice(idx,1);
+      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
+      updateHistory();updateDashboard();
+      Swal.fire("Deleted","Receipt removed","success");
     }
+  });
 }
 
-// ---------- Quotation ----------
-
-document.getElementById('qItemSelect')?.addEventListener('change', function () {
-    document.getElementById('qUnitPrice').value = this.selectedOptions[0].dataset.price;
-});
-
-function generateQuotation() {
-    const name = document.getElementById('qCustName').value;
-    const item = document.getElementById('qItemSelect').value;
-    const qty = Number(document.getElementById('qQty').value);
-    const unit = Number(document.getElementById('qUnitPrice').value);
-    if (!name || !item || !qty || !unit) { Swal.fire("Error", "Fill all fields", "error"); return; }
-
-    document.getElementById('qDatePrint').innerText = new Date().toLocaleDateString();
-    document.getElementById('qNamePrint').innerText = name;
-    const total = qty * unit;
-    document.getElementById('quotationText').innerHTML =
-        `Item: ${item}<br>Quantity: ${qty}<br>Unit Price: ₱${unit}<br>Total Amount: ₱${total}<br><br>
-        Notes:<br>• Price includes customization.<br>• 50% downpayment required.<br>• Balance upon delivery.<br>• Production starts after downpayment.<br><br>
-        Sincerely,<br>JKM PRIME DIGITAL PRINTS`;
+function exportToExcel(){
+  if(receiptHistory.length===0){Swal.fire("Error","No receipts to export","error");return;}
+  const ws=XLSX.utils.json_to_sheet(receiptHistory.map((r,i)=>( {No:i+1,Receipt:r.rno,Date:r.date,Customer:r.shipTo,Sales:Math.round(r.total),Profit:Math.round(r.profit)})));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Receipts");
+  XLSX.writeFile(wb,"receipt_history.xlsx");
 }
 
-function downloadQuotation() {
-    html2canvas(document.getElementById('quotationPreview')).then(canvas => {
-        let link = document.createElement('a');
-        link.download = 'quotation.png';
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+function applyFilters(){
+  let from=document.getElementById("fromDate").value;
+  let to=document.getElementById("toDate").value;
+  let search=document.getElementById("searchInput").value.toLowerCase();
+  updateHistory(r=>{
+    let d=new Date(r.date);let validDate=true;if(from) validDate=d>=new Date(from);if(to) validDate=validDate&&d<=new Date(to);
+    let validSearch=!search||r.shipTo.toLowerCase().includes(search)||r.rno.toLowerCase().includes(search);
+    return validDate&&validSearch;
+  });
 }
 
-// Initial load
-updateHistory();
-updateDashboard();
+function updateDashboard(){
+  let today=new Date().toLocaleDateString();
+  let dailySales=0,dailyProfit=0,monthlySales=0,monthlyProfit=0;
+  let month=today.split("/")[0];
+  receiptHistory.forEach(r=>{
+    let dateParts=r.date.split("/");
+    if(dateParts[0]==month){monthlySales+=r.total;monthlyProfit+=r.profit;}
+    if(r.date==today){dailySales+=r.total;dailyProfit+=r.profit;}
+  });
+  document.getElementById("dailySales").innerText=dailySales;
+  document.getElementById("dailyProfit").innerText=dailyProfit;
+  document.getElementById("monthlySales").innerText=monthlySales;
+  document.getElementById("monthlyProfit").innerText=monthlyProfit;
+  renderChart();
+}
+
+function renderChart(){
+  let ctx=document.getElementById("salesChart").getContext("2d");
+  let labels=[],data=[];
+  receiptHistory.forEach(r=>{labels.push(r.date); data.push(r.total);});
+  if(window.salesChartInstance) window.salesChartInstance.destroy();
+  window.salesChartInstance=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Sales',data:data,backgroundColor:'#2563eb'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+}
+
+//---- QUOTATION FUNCTIONS
+function generateQuotation(){
+  let custName=document.getElementById("qCustName").value;
+  let item=document.getElementById("qItemSelect").value;
+  let qty=document.getElementById("qQty").value;
+  let unitPrice=document.getElementById("qUnitPrice").value;
+  if(!custName || !item || !qty || !unitPrice){Swal.fire("Error","Please fill all fields","error"); return;}
+  let totalAmount=qty*unitPrice;
+  let today=new Date();
+  document.getElementById("qDatePrint").innerText=today.toLocaleDateString();
+  document.getElementById("qNamePrint").innerText=custName;
+  document.getElementById("quotationText").innerHTML=`
+  Thank you for your inquiry. Please see the quotation details below:<br><br>
+  <strong>Item:</strong> ${item}<br>
+  <strong>Quantity:</strong> ${qty} pcs<br>
+  <strong>Unit Price:</strong> ₱${parseFloat(unitPrice).toFixed(2)}<br>
+  <strong>Total Amount:</strong> ₱${parseFloat(totalAmount).toFixed(2)}<br><br>
+  <strong>Notes:</strong><br>
+  • Price includes customization as discussed.<br>
+  • At least 50% downpayment is required to confirm the order and start production.<br>
+  • Remaining balance must be settled upon delivery/pick-up.<br>
+  • Production timeline and other details will be confirmed once the downpayment has been received.<br><br>
+  Sincerely,<br>
+  JKM PRIME DIGITAL PRINTS
+  `;
+}
+
+function downloadQuotation(){
+  let content=document.getElementById("quotationPreview").innerText;
+  let blob=new Blob([content], {type:"text/plain"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="quotation.txt";
+  a.click();
+}
+
+// INITIAL LOAD
+updateHistory();updateDashboard();
 </script>
 
 </body>
