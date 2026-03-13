@@ -468,24 +468,27 @@ function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Add Title
+    // Title
     doc.setFontSize(16);
     doc.text("Receipt History", 105, 10, { align: "center" });
+
     doc.setFontSize(12);
 
-    // Prepare table headers
-const headers = [["No", "Receipt", "Date", "Customer", "Sales", "Profit", "Payment Type"]];
-const rows = receiptHistory.map((r, i) => [
-  i + 1,
-  r.rno,
-  r.date,
-  r.shipTo,
-  "\u20B1" + (r.total || 0),
-  "\u20B1" + Math.round(r.profit || 0),
-  r.paymentType || "-"
-]);
+    // Table headers
+    const headers = [["No", "Receipt", "Date", "Customer", "Sales", "Profit", "Payment Type"]];
 
-    // AutoTable plugin (requires jsPDF AutoTable)
+    // Table rows
+    const rows = receiptHistory.map((r, i) => [
+      i + 1,
+      r.rno,
+      r.date,
+      r.shipTo,
+      "PHP " + Number(r.total || 0).toLocaleString(),
+      "PHP " + Number(Math.round(r.profit || 0)).toLocaleString(),
+      r.paymentType || "-"
+    ]);
+
+    // AutoTable
     if (doc.autoTable) {
       doc.autoTable({
         head: headers,
@@ -493,12 +496,14 @@ const rows = receiptHistory.map((r, i) => [
         startY: 20,
         theme: "grid",
         headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+        styles: { fontSize: 10 }
       });
     } else {
-      // Fallback: Simple table
+      // fallback table
       let y = 20;
       doc.text("No | Receipt | Date | Customer | Sales | Profit | Payment Type", 10, y);
       y += 6;
+
       rows.forEach(r => {
         doc.text(r.join(" | "), 10, y);
         y += 6;
@@ -506,7 +511,9 @@ const rows = receiptHistory.map((r, i) => [
     }
 
     doc.save("receipt_history.pdf");
+
     Swal.fire("Success", "Exported to PDF!", "success");
+
   } catch (err) {
     console.error(err);
     Swal.fire("Error", "Failed to export PDF. Check console.", "error");
