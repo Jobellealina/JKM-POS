@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; margin:0; }
 body.dark { background:#0f172a; color:white; overflow-x:hidden; }
@@ -33,6 +34,8 @@ body.dark .print-area { background:#1e293b; color:white; }
 body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
 .main-content { margin-left:220px; padding:1rem; min-height:100vh; }
 .history-table-wrapper{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.print-header p { margin-top:5px; margin-bottom:2px; text-align:left; }
+.print-header strong { display:block; text-align:center; }
 @media(max-width:768px){
 .history-table-wrapper table{ min-width:600px; }
 .history-table-wrapper th, .history-table-wrapper td{ text-align:left !important; }
@@ -45,8 +48,13 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 .print-area { width:100%; padding:10px; font-size:11px; }
 .dashboard-columns .card { flex:1 1 100%; }
 }
-@media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:10px; } }
+@media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:15px; } }
 .tab-content > .tab-pane { min-height: calc(100vh - 2rem); overflow-y:auto; }
+.modal-left label{display:block; font-size:12px; margin-top:5px; font-weight:500;}
+.modal-left input, .modal-left select{width:100%; font-size:12px; margin-top:2px; padding:6px; border-radius:6px; border:1px solid #ccc;}
+.modal-left .modal-footer{display:flex; justify-content:flex-start; gap:10px; padding:5px;}
+.modal-left {padding:10px;}
+.modal-left h5 {margin-bottom:10px; font-size:16px; text-align:left;}
 </style>
 </head>
 <body>
@@ -71,18 +79,24 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <!-- Dashboard -->
 <div class="tab-pane fade show active" id="dashboardTab">
 <div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
-<div class="card p-3 bg-secondary text-white" style="width: 310px;"> <h6>Daily Sales</h6><h4>₱ <span id="dailySales">0</span></h4></div>
-<div class="card p-3 bg-success text-white" style="width: 310px;" ><h6>Daily Profit</h6><h4>₱ <span id="dailyProfit">0</span></h4></div>
-<div class="card p-3 bg-primary text-white" style="width: 310px;"><h6>Monthly Sales</h6><h4>₱ <span id="monthlySales">0</span></h4></div>
-<div class="card p-3 bg-danger text-white" style="width: 310px;"><h6>Monthly Profit</h6><h4>₱ <span id="monthlyProfit">0</span></h4></div>
+<div class="card p-3 bg-secondary text-white" style="width: 300px;"> <h6>Daily Sales</h6><h5>₱ <span id="dailySales">0</span></h5></div>
+<div class="card p-3 bg-success text-white" style="width: 300px;" ><h6>Daily Profit</h6><h5>₱ <span id="dailyProfit">0</span></h5></div>
+<div class="card p-3 bg-primary text-white" style="width: 300px;"><h6>Monthly Sales</h6><h5>₱ <span id="monthlySales">0</span></h5></div>
+<div class="card p-3 bg-danger text-white" style="width: 300px;"><h6>Monthly Profit</h6><h5>₱ <span id="monthlyProfit">0</span></h5></div>
 </div>
-<div class="card p-3">
-<h5>Sales Diagram</h5>
-<canvas id="salesChart" height="150"></canvas>
+<div class="d-flex gap-2 flex-wrap">
+<div class="card p-3" style="flex:1; height: 400px;">
+<h6>Sales Line Chart</h6>
+<canvas id="salesLineChart" style="height: 350px;"></canvas>
+</div>
+<div class="card p-3" style="flex:1; height: 400px;">
+<h6>Sales Bar Chart</h6>
+<canvas id="salesBarChart" style="height: 350px;"></canvas>
+</div>
 </div>
 </div>
 
-<!-- Add Receipt -->
+<!-- Add Receipt Tab -->
 <div class="tab-pane fade" id="receiptTab">
 <div class="row">
 <div class="col-md-6">
@@ -97,8 +111,13 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
 <input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
 <select id="paymentMethod" class="form-select mb-1">
-<option>Cash</option><option>GCash</option>
+<option>Cash</option><option>GCash</option><option>Bank Transfer</option>
 </select>
+<select id="paymentType" class="form-select mb-1" onchange="toggleDownpayment()">
+<option value="Full Payment">Full Payment</option>
+<option value="Downpayment">Downpayment</option>
+</select>
+<input type="number" id="downpaymentAmount" placeholder="Downpayment Amount" class="form-control mb-1" style="display:none;">
 <div class="mt-2 d-flex gap-1 flex-wrap">
 <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
 <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
@@ -110,29 +129,35 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <div class="col-md-6">
 <div id="receiptPreview" class="print-area">
 <img src="Watermark.png" class="watermark">
-<div class="mb-2 text-center">
-<img src="logo.png" width="50"><br>
-<strong>JKM PRIME DIGITAL PRINTS</strong><br>
-Printing & Digital Services
-</div>
+<div class="print-header mb-2">
+<img src="logo.png" width="50" class="d-block mx-auto">
+<strong>JKM PRIME DIGITAL PRINTS <br> Printing Services</strong><br>
 <p>Name: <span id="rNamePrint"></span></p>
 <p>Address: <span id="rAddressPrint"></span></p>
 <p>Date: <span id="rDatePrint"></span></p>
 <p>Receipt No.: <span id="rNoPrint"></span></p>
 <p>MOP: <span id="rPaymentPrint"></span></p>
+<p><span id="rPaymentTypePrint"></span></p>
+</div>
 <div style="overflow-x:auto;">
 <table class="table table-sm" id="previewTable">
 <thead>
-<tr>
-<th>No</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th>
+<tr style="border-bottom: 1px solid #b5c6eb; border-top: 1px solid #b5c6eb;"> <!-- dark underline -->
+  <th>No</th>
+  <th>Description</th>
+  <th>Qty</th>
+  <th>Price</th>
+  <th>Amount</th>
+  <th>Total</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody><tr style="height:7px;"></tr></tbody><br>
 <tfoot>
-<tr>
-<th colspan="4" class="text-end">TOTAL</th>
-<th id="grandTotal">0</th>
-</tr>
+  <tr style="height:25px;"></tr> <!-- small spacing before TOTAL -->
+  <tr>
+    <th colspan="5" style="text-align:right;">TOTAL</th>
+    <th id="grandTotal">₱0</th>
+  </tr>
 </tfoot>
 </table>
 </div>
@@ -141,7 +166,7 @@ Printing & Digital Services
 </div>
 </div>
 
-<!-- Receipt History -->
+<!-- History Tab -->
 <div class="tab-pane fade" id="historyTab">
 <div class="card p-3">
 <h5 style="color:#7995f2;">Receipt History</h5>
@@ -155,14 +180,15 @@ Printing & Digital Services
 <table class="table table-sm" id="historyTable">
 <thead>
 <tr>
-<th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Action</th>
+<th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Payment Type</th><th>Action</th>
 </tr>
 </thead>
 <tbody id="receiptHistory"></tbody>
 </table>
 </div>
 <div class="mb-2">
-<button class="btn btn-blue btn-professional" onclick="exportToExcel()">Export</button>
+<button class="btn btn-blue btn-professional" onclick="exportToExcel()">Excel</button>
+<button class="btn btn-danger btn-professional" onclick="exportToPDF()">PDF</button>
 </div>
 </div>
 </div>
@@ -179,11 +205,10 @@ Printing & Digital Services
 <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
 <div class="mt-2 d-flex gap-1 flex-wrap">
 <button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
-<button class="btn btn-green btn-professional" onclick="downloadQuotation()">Download</button>
+<button class="btn btn-green btn-professional" onclick="downloadQuotationPDF()">Download PDF</button>
 </div>
 </div>
 </div>
-
 <div class="col-md-6">
 <div id="quotationPreview" class="print-area">
 <img src="Watermark.png" class="watermark">
@@ -205,8 +230,12 @@ Quotation for Order
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
-//--- JS CODE
+//=================== FULL JS UPDATED ===================
+
+// Items List
 let items=[
   {name:"3R Photo Print",price:20},{name:"4R Photo Print",price:25},{name:"5R Photo Print",price:30},{name:"A4 Photo Print",price:60},{name:"Polaroid Photo Print",price:60},
   {name:"Rush ID Package 1",price:35},{name:"Rush ID Package 2",price:50},{name:"Rush ID Package 3",price:45},
@@ -217,6 +246,7 @@ let items=[
   {name:"A5 Notebook Photo Paper Cover",price:85},{name:"Composition Notebook",price:69}
 ];
 
+// Populate Selects
 function populateItems(){
   let sel=document.getElementById("item");
   let qsel=document.getElementById("qItemSelect");
@@ -229,29 +259,39 @@ function populateItems(){
 }
 populateItems();
 
+// Variables
 let count=0,total=0,undoStack=[];
 let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]");
 
+// Item select change
 document.getElementById("item").addEventListener("change",function(){
-  document.getElementById("price").value=this.selectedOptions[0].dataset.price;
+  document.getElementById("price").value=this.selectedOptions[0].dataset.price || 0;
 });
 
+// Toggle downpayment input
+function toggleDownpayment(){
+  const type = document.getElementById("paymentType").value;
+  document.getElementById("downpaymentAmount").style.display = type==="Downpayment"?"block":"none";
+}
+
+// Add Item
 function addItem(){
   const itemName=document.getElementById("item").value;
-  const qty=Number(document.getElementById("qty").value);
-  const price=Number(document.getElementById("price").value);
-  if(!itemName) return;
+  const qty=Number(document.getElementById("qty").value)||0;
+  const price=Number(document.getElementById("price").value)||0;
+  if(!itemName||qty<=0||price<=0) return;
   const amount=Math.round(qty*price);
   count++;
   total+=amount;
   undoStack.push({itemName,qty,price,amount});
   let tbody=document.querySelector("#previewTable tbody");
   let row=tbody.insertRow();
-  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td>`;
+  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td><td>₱${total}</td>`;
   document.getElementById("grandTotal").innerText=`₱${total}`;
   updateReceiptHeader();
 }
 
+// Undo Item
 function undoItem(){
   if(!undoStack.length) return;
   let last=undoStack.pop();
@@ -261,130 +301,293 @@ function undoItem(){
   document.getElementById("grandTotal").innerText=`₱${total}`;
 }
 
+// Update Receipt Header
 function updateReceiptHeader(){
-  document.getElementById("rNamePrint").innerText=document.getElementById("custName").value;
-  document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value;
+  document.getElementById("rNamePrint").innerText=document.getElementById("custName").value||"-";
+  document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value||"-";
   document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString();
-  document.getElementById("rPaymentPrint").innerText=document.getElementById("paymentMethod").value;
   document.getElementById("rNoPrint").innerText="JKM"+Math.floor(Math.random()*90000+10000);
+  const paymentMethod=document.getElementById("paymentMethod").value;
+  const paymentType=document.getElementById("paymentType").value;
+  document.getElementById("rPaymentPrint").innerText=paymentMethod;
+  if(paymentType==="Downpayment"){
+    const dp=Number(document.getElementById("downpaymentAmount").value)||0;
+    const remaining=total-dp;
+    document.getElementById("rPaymentTypePrint").innerText=`Downpayment: ₱${dp} | Remaining: ₱${remaining}`;
+  } else document.getElementById("rPaymentTypePrint").innerText="Full Payment";
 }
 
+// Save Receipt
 function saveReceipt(){
   if(count===0){Swal.fire("Error","No items added","error");return;}
-  let profit=0;undoStack.forEach(i=>profit+=i.price*i.qty*0.45);
-  receiptHistory.push({rno:document.getElementById("rNoPrint").innerText,date:new Date().toLocaleDateString(),shipTo:document.getElementById("custName").value,total,profit});
+  let profit=total*0.45;
+  let paymentType=document.getElementById("paymentType").value;
+  let dpAmount=paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
+  receiptHistory.push({
+    rno:document.getElementById("rNoPrint").innerText,
+    date:new Date().toLocaleDateString(),
+    shipTo:document.getElementById("custName").value||"-",
+    total:total,
+    profit:profit,
+    paymentMethod:document.getElementById("paymentMethod").value,
+    paymentType:paymentType,
+    downpayment:dpAmount
+  });
   localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
   Swal.fire("Saved","Receipt saved!","success");
   document.querySelector("#previewTable tbody").innerHTML="";
-  total=0;count=0;undoStack=[];
+  total=0; count=0; undoStack=[];
   document.getElementById("custName").value="";
   document.getElementById("custAddress").value="";
   document.getElementById("grandTotal").innerText="₱0";
-  updateHistory();updateDashboard();
+  document.getElementById("downpaymentAmount").value="";
+  updateHistory(); updateDashboard();
 }
 
+// Toggle Dark Mode
 function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
+
+// Print Receipt
 function printReceipt(){window.print();}
 
+// Update Receipt History
 function updateHistory(filterFn){
-  const el=document.getElementById("receiptHistory");if(!el) return;el.innerHTML="";
+  const el=document.getElementById("receiptHistory"); el.innerHTML="";
   let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
-  data.forEach((r,i)=>{el.innerHTML+=`<tr><td>${i+1}</td><td>${r.rno}</td><td>${r.date}</td><td>${r.shipTo}</td><td>₱${Math.round(r.total)}</td><td>₱${Math.round(r.profit)}</td><td><button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">❌</button></td></tr>`;});
+  data.forEach((r,i)=>{
+    el.innerHTML+=`<tr>
+      <td>${i+1}</td>
+      <td>${r.rno}</td>
+      <td>${r.date}</td>
+      <td>${r.shipTo}</td>
+      <td>₱${Math.round(r.total)}</td>
+      <td>₱${Math.round(r.profit)}</td>
+      <td>${r.paymentType}</td>
+      <td>
+        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
+        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+      </td>
+    </tr>`;
+  });
 }
 
+// Edit Receipt (modern layout)
+function editReceipt(idx){
+  const r=receiptHistory[idx];
+  Swal.fire({
+    title:'Edit Receipt',
+    html:`<div class="modal-left">
+
+      <label style="text-align: left;">Customer Name</label><input id="swalName" value="${r.shipTo}">
+      <label style="text-align: left;">Address</label><input id="swalAddress" value="${r.address||''}">
+      <label style="text-align: left;">Payment Method</label><select id="swalPaymentMethod">
+        <option ${r.paymentMethod==="Cash"?"selected":""}>Cash</option>
+        <option ${r.paymentMethod==="GCash"?"selected":""}>GCash</option>
+        <option ${r.paymentMethod==="Bank Transfer"?"selected":""}>Bank Transfer</option>
+      </select>
+      <label style="text-align: left;">Payment Type</label><select id="swalPaymentType">
+        <option value="Full Payment" ${r.paymentType==="Full Payment"?"selected":""}>Full Payment</option>
+        <option value="Downpayment" ${r.paymentType==="Downpayment"?"selected":""}>Downpayment</option>
+      </select>
+      <label style="text-align: left;">Downpayment Amount</label><input id="swalDP" value="${r.downpayment||0}">
+    </div>`,
+    focusConfirm:false,
+    showCancelButton:true,
+    preConfirm:()=>( {
+      shipTo:document.getElementById("swalName").value,
+      address:document.getElementById("swalAddress").value,
+      paymentMethod:document.getElementById("swalPaymentMethod").value,
+      paymentType:document.getElementById("swalPaymentType").value,
+      downpayment:Number(document.getElementById("swalDP").value)||0
+    })
+  }).then(res=>{
+    if(res.isConfirmed){
+      receiptHistory[idx].shipTo=res.value.shipTo;
+      receiptHistory[idx].address=res.value.address;
+      receiptHistory[idx].paymentMethod=res.value.paymentMethod;
+      receiptHistory[idx].paymentType=res.value.paymentType;
+      receiptHistory[idx].downpayment=res.value.downpayment;
+      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
+      updateHistory(); updateDashboard();
+      Swal.fire("Updated","Receipt updated","success");
+    }
+  });
+}
+
+// Delete Receipt
 function deleteReceipt(idx){
   Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
     if(res.isConfirmed){
       receiptHistory.splice(idx,1);
       localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
-      updateHistory();updateDashboard();
+      updateHistory(); updateDashboard();
       Swal.fire("Deleted","Receipt removed","success");
     }
   });
 }
 
-function exportToExcel(){
-  if(receiptHistory.length===0){Swal.fire("Error","No receipts to export","error");return;}
-  const ws=XLSX.utils.json_to_sheet(receiptHistory.map((r,i)=>( {No:i+1,Receipt:r.rno,Date:r.date,Customer:r.shipTo,Sales:Math.round(r.total),Profit:Math.round(r.profit)})));
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Receipts");
-  XLSX.writeFile(wb,"receipt_history.xlsx");
+function exportToExcel() {
+  if (!receiptHistory || receiptHistory.length === 0) {
+    Swal.fire("Error", "No receipts to export", "error");
+    return;
+  }
+
+  try {
+    // Prepare data
+    const exportData = receiptHistory.map((r, i) => ({
+      No: i + 1,
+      Receipt: r.rno,
+      Date: r.date,
+      Customer: r.shipTo,
+      Sales: Number(r.total) || 0,
+      Profit: Number(r.profit) || 0,
+      PaymentType: r.paymentType || "-"
+    }));
+
+    // Convert to Excel
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Receipts");
+    XLSX.writeFile(wb, "receipt_history.xlsx");
+
+    Swal.fire("Success", "Exported to Excel!", "success");
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Failed to export. Check console.", "error");
+  }
 }
 
+// Export to PDF
+function exportToPDF() {
+  if (!receiptHistory || receiptHistory.length === 0) {
+    Swal.fire("Error", "No receipts to export", "error");
+    return;
+  }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Add Title
+    doc.setFontSize(16);
+    doc.text("Receipt History", 105, 10, { align: "center" });
+    doc.setFontSize(12);
+
+    // Prepare table headers
+const headers = [["No", "Receipt", "Date", "Customer", "Sales", "Profit", "Payment Type"]];
+const rows = receiptHistory.map((r, i) => [
+  i + 1,
+  r.rno,
+  r.date,
+  r.shipTo,
+  "\u20B1" + (r.total || 0),
+  "\u20B1" + Math.round(r.profit || 0),
+  r.paymentType || "-"
+]);
+
+    // AutoTable plugin (requires jsPDF AutoTable)
+    if (doc.autoTable) {
+      doc.autoTable({
+        head: headers,
+        body: rows,
+        startY: 20,
+        theme: "grid",
+        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+      });
+    } else {
+      // Fallback: Simple table
+      let y = 20;
+      doc.text("No | Receipt | Date | Customer | Sales | Profit | Payment Type", 10, y);
+      y += 6;
+      rows.forEach(r => {
+        doc.text(r.join(" | "), 10, y);
+        y += 6;
+      });
+    }
+
+    doc.save("receipt_history.pdf");
+    Swal.fire("Success", "Exported to PDF!", "success");
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Failed to export PDF. Check console.", "error");
+  }
+}
+// Apply Filters
 function applyFilters(){
   let from=document.getElementById("fromDate").value;
   let to=document.getElementById("toDate").value;
   let search=document.getElementById("searchInput").value.toLowerCase();
   updateHistory(r=>{
-    let d=new Date(r.date);let validDate=true;if(from) validDate=d>=new Date(from);if(to) validDate=validDate&&d<=new Date(to);
+    let d=new Date(r.date); let validDate=true;
+    if(from) validDate=d>=new Date(from);
+    if(to) validDate=validDate&&d<=new Date(to);
     let validSearch=!search||r.shipTo.toLowerCase().includes(search)||r.rno.toLowerCase().includes(search);
     return validDate&&validSearch;
   });
 }
 
+// Update Dashboard
 function updateDashboard(){
-  let today=new Date().toLocaleDateString();
+  let today=new Date();
+  let todayStr=today.toLocaleDateString();
   let dailySales=0,dailyProfit=0,monthlySales=0,monthlyProfit=0;
-  let month=today.split("/")[0];
+  let currentMonth=today.getMonth()+1;
   receiptHistory.forEach(r=>{
-    let dateParts=r.date.split("/");
-    if(dateParts[0]==month){monthlySales+=r.total;monthlyProfit+=r.profit;}
-    if(r.date==today){dailySales+=r.total;dailyProfit+=r.profit;}
+    let rDate=new Date(r.date);
+    let rMonth=rDate.getMonth()+1;
+    let rTotal=Number(r.total)||0;
+    let rProfit=rTotal*0.45;
+    if(rMonth===currentMonth){monthlySales+=rTotal; monthlyProfit+=rProfit;}
+    if(r.date===todayStr){dailySales+=rTotal; dailyProfit+=rProfit;}
   });
   document.getElementById("dailySales").innerText=dailySales;
   document.getElementById("dailyProfit").innerText=dailyProfit;
   document.getElementById("monthlySales").innerText=monthlySales;
   document.getElementById("monthlyProfit").innerText=monthlyProfit;
-  renderChart();
+  renderCharts();
 }
 
-function renderChart(){
-  let ctx=document.getElementById("salesChart").getContext("2d");
+// Render Charts (line & bar)
+let barChartInstance,lineChartInstance;
+function renderCharts(){
+  let barCtx=document.getElementById("salesBarChart").getContext("2d");
+  let lineCtx=document.getElementById("salesLineChart").getContext("2d");
   let labels=[],data=[];
   receiptHistory.forEach(r=>{labels.push(r.date); data.push(r.total);});
-  if(window.salesChartInstance) window.salesChartInstance.destroy();
-  window.salesChartInstance=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Sales',data:data,backgroundColor:'#2563eb'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+  if(barChartInstance) barChartInstance.destroy();
+  if(lineChartInstance) lineChartInstance.destroy();
+  barChartInstance=new Chart(barCtx,{type:'bar',data:{labels:labels,datasets:[{label:'Sales',data:data,backgroundColor:'#2563eb'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+  lineChartInstance=new Chart(lineCtx,{type:'line',data:{labels:labels,datasets:[{label:'Sales Trend',data:data,borderColor:'#22c55e',fill:false,tension:0.3}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
 }
 
-//---- QUOTATION FUNCTIONS
+// Quotation
 function generateQuotation(){
   let custName=document.getElementById("qCustName").value;
   let item=document.getElementById("qItemSelect").value;
   let qty=document.getElementById("qQty").value;
   let unitPrice=document.getElementById("qUnitPrice").value;
-  if(!custName || !item || !qty || !unitPrice){Swal.fire("Error","Please fill all fields","error"); return;}
+  if(!custName||!item||!qty||!unitPrice){Swal.fire("Error","Please fill all fields","error");return;}
   let totalAmount=qty*unitPrice;
   let today=new Date();
   document.getElementById("qDatePrint").innerText=today.toLocaleDateString();
   document.getElementById("qNamePrint").innerText=custName;
-  document.getElementById("quotationText").innerHTML=`
-  Thank you for your inquiry. Please see the quotation details below:<br><br>
-  <strong>Item:</strong> ${item}<br>
+  document.getElementById("quotationText").innerHTML=`<strong>Item:</strong> ${item}<br>
   <strong>Quantity:</strong> ${qty} pcs<br>
   <strong>Unit Price:</strong> ₱${parseFloat(unitPrice).toFixed(2)}<br>
   <strong>Total Amount:</strong> ₱${parseFloat(totalAmount).toFixed(2)}<br><br>
-  <strong>Notes:</strong><br>
-  • Price includes customization as discussed.<br>
-  • At least 50% downpayment is required to confirm the order and start production.<br>
-  • Remaining balance must be settled upon delivery/pick-up.<br>
-  • Production timeline and other details will be confirmed once the downpayment has been received.<br><br>
-  Sincerely,<br>
-  JKM PRIME DIGITAL PRINTS
-  `;
+  Notes: <br>• Price includes customization.<br>• At least 50% downpayment required.<br>• Remaining balance upon delivery.<br><br> Sincerely, <br> JKM PRIME DIGITAL PRINTS`;
 }
 
-function downloadQuotation(){
-  let content=document.getElementById("quotationPreview").innerText;
-  let blob=new Blob([content], {type:"text/plain"});
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="quotation.txt";
-  a.click();
+// Download Quotation PDF
+function downloadQuotationPDF(){
+  const { jsPDF } = window.jspdf;
+  let doc=new jsPDF();
+  doc.html(document.getElementById("quotationPreview"),{callback:function(pdf){pdf.save("quotation.pdf");},x:5,y:5,width:200});
 }
 
 // INITIAL LOAD
-updateHistory();updateDashboard();
-</script>
+updateHistory(); updateDashboard();
 
+</script>
 </body>
 </html>
