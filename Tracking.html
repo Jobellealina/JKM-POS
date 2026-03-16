@@ -1,17 +1,20 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JKM PRIME DIGITAL PRINTS - Project Tracker</title>
+
+<title>JKM Prime Digital Prints - Project Tracker</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
 
 body{
-font-family:'Segoe UI',sans-serif;
+font-family:Segoe UI;
 background:#eef1f5;
 }
 
@@ -24,64 +27,64 @@ margin-bottom:20px;
 display:flex;
 align-items:center;
 gap:15px;
-flex-wrap:wrap
+flex-wrap:wrap;
 }
 
 .headerBox img{
 height:60px;
-border-radius:10px
+border-radius:10px;
 }
 
 .companyTitle{
 font-size:22px;
-font-weight:700
+font-weight:700;
 }
 
 .companySub{
 font-size:14px;
-opacity:.8
+opacity:.8;
 }
 
 .card{
 border-radius:18px;
 box-shadow:0 10px 30px rgba(0,0,0,.08);
 border:none;
-margin-bottom:20px
+margin-bottom:20px;
 }
 
 .table thead{
 background:#0d6efd;
-color:white
+color:white;
 }
 
 .totalWrapper{
 background:#f8fafc;
 border-radius:14px;
 padding:15px;
-text-align:center
+text-align:center;
 }
 
 .totalLabel{
 font-size:14px;
-color:#555
+color:#555;
 }
 
 .totalValue{
 font-size:26px;
-font-weight:700
+font-weight:700;
 }
 
 .profitValue{
 font-size:26px;
 font-weight:700;
-color:#16a34a
+color:#16a34a;
 }
 
 .inputRow input{
 width:100%;
 border:1px solid #ddd;
 border-radius:6px;
-padding:4px
+padding:4px;
 }
 
 </style>
@@ -94,7 +97,7 @@ padding:4px
 
 <div class="headerBox">
 
-<img src="logo.png">
+<img src="logo.png" onerror="this.style.display='none'">
 
 <div>
 
@@ -108,6 +111,7 @@ padding:4px
 
 </div>
 
+
 <div class="card p-3">
 
 <h5>Project Materials</h5>
@@ -115,40 +119,31 @@ padding:4px
 <div class="row g-3 mb-2">
 
 <div class="col-md-6">
-
 <label>Project Name</label>
-
 <input type="text" id="projectName" class="form-control">
-
 </div>
 
 <div class="col-md-6">
-
 <label>Project Income</label>
-
 <input type="number" id="income" class="form-control">
-
 </div>
 
 </div>
+
 
 <div class="table-responsive">
 
 <table class="table table-bordered text-center align-middle">
 
 <thead>
-
 <tr>
-
 <th>Material</th>
 <th>Packs</th>
 <th>Qty / Pack</th>
 <th>Total Qty</th>
 <th>Total Price</th>
 <th>Add</th>
-
 </tr>
-
 </thead>
 
 <tbody>
@@ -166,9 +161,7 @@ padding:4px
 <td><input type="number" id="price"></td>
 
 <td>
-
 <button class="btn btn-primary btn-sm" onclick="addMaterial()">ADD</button>
-
 </td>
 
 </tr>
@@ -181,41 +174,32 @@ padding:4px
 
 </div>
 
+
 <div class="row mt-3 g-3">
 
 <div class="col-md-6">
-
 <div class="totalWrapper">
-
 <div class="totalLabel">TOTAL PROJECT COST</div>
-
 <div class="totalValue">₱ <span id="totalCost">0</span></div>
-
 </div>
-
 </div>
 
 <div class="col-md-6">
-
 <div class="totalWrapper">
-
 <div class="totalLabel">PROJECT PROFIT</div>
-
 <div class="profitValue">₱ <span id="profit">0</span></div>
-
+</div>
 </div>
 
 </div>
 
-</div>
 
 <div class="mt-3">
-
 <button class="btn btn-success w-100" onclick="saveProject()">SAVE PROJECT</button>
-
 </div>
 
 </div>
+
 
 <div class="card p-3">
 
@@ -224,18 +208,14 @@ padding:4px
 <table class="table table-striped text-center">
 
 <thead>
-
 <tr>
-
 <th>Date</th>
 <th>Project</th>
 <th>Cost</th>
 <th>Income</th>
 <th>Profit</th>
 <th>Actions</th>
-
 </tr>
-
 </thead>
 
 <tbody id="history"></tbody>
@@ -246,7 +226,6 @@ padding:4px
 
 </div>
 
-<!-- VIEW MODAL -->
 
 <div class="modal fade" id="viewModal">
 
@@ -267,17 +246,13 @@ padding:4px
 <table class="table table-bordered text-center">
 
 <thead>
-
 <tr>
-
 <th>Material</th>
 <th>Packs</th>
 <th>Qty/Pack</th>
 <th>Total Qty</th>
 <th>Price</th>
-
 </tr>
-
 </thead>
 
 <tbody id="viewTable"></tbody>
@@ -292,42 +267,38 @@ padding:4px
 
 </div>
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- FIREBASE -->
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
 
 <script>
 
 const firebaseConfig = {
-
-databaseURL: "https://jkm-printing-system-default-rtdb.firebaseio.com/"
-
+databaseURL:"https://jkm-printing-system-default-rtdb.firebaseio.com/"
 };
 
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
+
 let materials=[];
 let totalCost=0;
 
 const tbody=document.getElementById("tbody");
-
 const totalCostSpan=document.getElementById("totalCost");
-
 const profitSpan=document.getElementById("profit");
-
 const history=document.getElementById("history");
 
+
 function goMain(){
-
 window.location.href="index.html";
-
 }
+
 
 function render(){
 
@@ -341,31 +312,16 @@ let totalQty=m.packs*m.qty;
 tc+=m.price;
 
 html+=`
-
 <tr>
-
 <td>${m.name}</td>
-
 <td>${m.packs}</td>
-
 <td>${m.qty}</td>
-
 <td>${totalQty}</td>
-
 <td>₱${m.price}</td>
-
 <td>
-
-<button class="btn btn-danger btn-sm" onclick="delMaterial(${i})">
-
-Delete
-
-</button>
-
+<button class="btn btn-danger btn-sm" onclick="delMaterial(${i})">Delete</button>
 </td>
-
 </tr>
-
 `;
 
 });
@@ -380,18 +336,14 @@ computeProfit();
 
 }
 
+
 function addMaterial(){
 
 let m={
-
 name:material.value,
-
 packs:Number(packs.value),
-
 qty:Number(qty.value),
-
 price:Number(price.value)
-
 };
 
 if(!m.name||!m.packs||!m.qty||!m.price)return;
@@ -407,6 +359,7 @@ price.value="";
 
 }
 
+
 function delMaterial(i){
 
 materials.splice(i,1);
@@ -414,6 +367,7 @@ materials.splice(i,1);
 render();
 
 }
+
 
 function computeProfit(){
 
@@ -423,43 +377,33 @@ profitSpan.innerText=(incomeVal-totalCost);
 
 }
 
+
 function saveProject(){
 
 let name=projectName.value;
-
 let incomeVal=Number(income.value)||0;
-
 let profit=incomeVal-totalCost;
-
 let date=new Date().toLocaleString();
 
 let data={
-
 date:date,
-
 name:name,
-
 totalCost:totalCost,
-
 incomeVal:incomeVal,
-
 profit:profit,
-
 materials:materials
-
 };
 
 db.ref("projects").push(data);
 
 materials=[];
-
 render();
 
 projectName.value="";
-
 income.value="";
 
 }
+
 
 function loadProjects(){
 
@@ -472,27 +416,16 @@ snap.forEach((child)=>{
 let d=child.val();
 
 html+=`
-
 <tr>
-
 <td>${d.date}</td>
-
 <td>${d.name}</td>
-
 <td>₱${d.totalCost}</td>
-
 <td>₱${d.incomeVal}</td>
-
 <td>₱${d.profit}</td>
-
 <td>
-
 <button class="btn btn-info btn-sm" onclick='viewProject(${JSON.stringify(d.materials)})'>View</button>
-
 </td>
-
 </tr>
-
 `;
 
 });
@@ -503,6 +436,7 @@ history.innerHTML=html;
 
 }
 
+
 function viewProject(materials){
 
 let html="";
@@ -510,21 +444,13 @@ let html="";
 materials.forEach(m=>{
 
 html+=`
-
 <tr>
-
 <td>${m.name}</td>
-
 <td>${m.packs}</td>
-
 <td>${m.qty}</td>
-
 <td>${m.packs*m.qty}</td>
-
 <td>₱${m.price}</td>
-
 </tr>
-
 `;
 
 });
@@ -535,10 +461,11 @@ new bootstrap.Modal(document.getElementById("viewModal")).show();
 
 }
 
+
 loadProjects();
 
 </script>
 
 </body>
-
 </html>
+```
