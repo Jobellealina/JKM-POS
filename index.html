@@ -12,6 +12,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; margin:0; }
 body.dark { background:#0f172a; color:white; overflow-x:hidden; }
@@ -59,7 +63,6 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 </head>
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar">
 <img src="logo1.png" class="mb-3 mx-auto" style="border-radius:10px; height:50px; width:50px;">
 <h5 class="text-center mb-3">JKM Prime Digital Prints</h5><br>
@@ -232,8 +235,19 @@ Quotation for Order
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 <script>
 //=================== FULL JS UPDATED ===================
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+  databaseURL: "https://jkm-printing-system-default-rtdb.firebaseio.com",
+  projectId: "jkm-printing-system",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // Items List
 let items=[
@@ -261,7 +275,8 @@ populateItems();
 
 // Variables
 let count=0,total=0,undoStack=[];
-let receiptHistory=JSON.parse(localStorage.getItem("receiptHistory")||"[]");
+let receiptHistory=[]; // we will populate from Firebase
+fetchReceiptsFromFirebase();
 
 // Item select change
 document.getElementById("item").addEventListener("change",function(){
@@ -316,24 +331,57 @@ function updateReceiptHeader(){
     document.getElementById("rPaymentTypePrint").innerText=`Downpayment: ₱${dp} | Remaining: ₱${remaining}`;
   } else document.getElementById("rPaymentTypePrint").innerText="Full Payment";
 }
+function saveReceiptToFirebase(receipt){
+  const ref = db.ref('receipts');
+  const newRef = ref.push();
+  newRef.set(receipt);
+}
 
+function deleteReceiptFromFirebase(rno){
+  const ref = db.ref('receipts');
+  ref.orderByChild('rno').equalTo(rno).once('value', snapshot=>{
+    snapshot.forEach(child=>{
+      child.ref.remove();
+    });
+  });
+}
+
+function fetchReceiptsFromFirebase(){
+  const ref = db.ref('receipts');
+  ref.on('value', snapshot=>{
+    const data = snapshot.val() || {};
+    receiptHistory = Object.values(data);
+    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+    updateHistory();
+    updateDashboard();
+  });
+}
 // Save Receipt
 function saveReceipt(){
   if(count===0){Swal.fire("Error","No items added","error");return;}
   let profit=total*0.45;
   let paymentType=document.getElementById("paymentType").value;
   let dpAmount=paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
-  receiptHistory.push({
-    rno:document.getElementById("rNoPrint").innerText,
-    date:new Date().toLocaleDateString(),
-    shipTo:document.getElementById("custName").value||"-",
-    total:total,
-    profit:profit,
-    paymentMethod:document.getElementById("paymentMethod").value,
-    paymentType:paymentType,
-    downpayment:dpAmount
-  });
-  localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
+  
+  const receipt = {
+    rno: document.getElementById("rNoPrint").innerText,
+    date: new Date().toLocaleDateString(),
+    shipTo: document.getElementById("custName").value||"-",
+    address: document.getElementById("custAddress").value||"-",
+    total: total,
+    profit: profit,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    paymentType: paymentType,
+    downpayment: dpAmount
+  };
+
+  // Save to localStorage
+  receiptHistory.push(receipt);
+  localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+  
+  // Save to Firebase
+  saveReceiptToFirebase(receipt);
+
   Swal.fire("Saved","Receipt saved!","success");
   document.querySelector("#previewTable tbody").innerHTML="";
   total=0; count=0; undoStack=[];
@@ -350,7 +398,6 @@ function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
 // Print Receipt
 function printReceipt(){window.print();}
 
-// Update Receipt History
 function updateHistory(filterFn){
   const el=document.getElementById("receiptHistory"); el.innerHTML="";
   let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
@@ -418,6 +465,8 @@ function editReceipt(idx){
 function deleteReceipt(idx){
   Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
     if(res.isConfirmed){
+      const rno = receiptHistory[idx].rno;
+      deleteReceiptFromFirebase(rno); // remove from Firebase
       receiptHistory.splice(idx,1);
       localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
       updateHistory(); updateDashboard();
