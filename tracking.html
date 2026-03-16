@@ -268,11 +268,10 @@ function saveProject(){
     let incomeVal = Number(document.getElementById("income").value) || 0;
     let profit = incomeVal - totalCost;
     if(!name) return alert("Project name is required!");
-
     let date = new Date().toLocaleString();
     let data = {
         date, name, totalCost, incomeVal, profit,
-        materials: materials
+        materials
     };
     db.ref("projects").push(data);
     materials = [];
@@ -281,13 +280,15 @@ function saveProject(){
     document.getElementById("income").value="";
 }
 
+// PROJECT HISTORY - View / Edit / Delete
 function loadProjects(){
     db.ref("projects").on("value",(snap)=>{
         let html = "";
         snap.forEach((child)=>{
             let d = child.val();
-            // encode JSON to avoid HTML issues
+            let key = child.key;
             let materialsEncoded = encodeURIComponent(JSON.stringify(d.materials));
+
             html += `
             <tr>
                 <td>${d.date}</td>
@@ -297,6 +298,8 @@ function loadProjects(){
                 <td>₱${d.profit}</td>
                 <td>
                     <button class="btn btn-info btn-sm" onclick="viewProject('${materialsEncoded}')">View</button>
+                    <button class="btn btn-warning btn-sm" onclick="editProject('${key}')">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProject('${key}')">Delete</button>
                 </td>
             </tr>
             `;
@@ -323,6 +326,29 @@ function viewProject(materialsEncoded){
     new bootstrap.Modal(document.getElementById("viewModal")).show();
 }
 
+// EDIT PROJECT
+function editProject(key){
+    db.ref("projects/"+key).get().then(snapshot=>{
+        if(snapshot.exists()){
+            let data = snapshot.val();
+            document.getElementById("projectName").value = data.name;
+            document.getElementById("income").value = data.incomeVal;
+            materials = data.materials || [];
+            render();
+            // delete old entry so save will update
+            db.ref("projects/"+key).remove();
+        }
+    });
+}
+
+// DELETE PROJECT
+function deleteProject(key){
+    if(confirm("Are you sure you want to delete this project?")){
+        db.ref("projects/"+key).remove();
+    }
+}
+
+// LOAD projects initially
 loadProjects();
 </script>
 
