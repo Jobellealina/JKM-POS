@@ -70,7 +70,11 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <a class="nav-link active" data-bs-toggle="tab" href="#dashboardTab"><i class="bi bi-speedometer2 fs-5"></i><span class="d-none d-md-inline">Dashboard</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#receiptTab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#historyTab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a><br>
-<a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a>
+<a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a><br>
+<a class="nav-link" href="tracking.html">
+  <i class="bi bi-kanban fs-5"></i>
+  <span class="d-none d-md-inline">Tracker</span>
+</a>
 </nav><br>
 <button class="btn btn-primary toggle-btn mx-auto mt-3" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
 </div>
@@ -243,11 +247,23 @@ Quotation for Order
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-  databaseURL: "https://jkm-printing-system-default-rtdb.firebaseio.com",
-  projectId: "jkm-printing-system",
+  databaseURL: "https://your-database-url.firebaseio.com",
+  projectId: "your-project-id",
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+function fetchHistoryFromFirebase(){
+  const ref = db.ref('trackingProjects'); // o kung anong path sa Firebase
+  ref.on('value', snapshot => {
+    const data = snapshot.val() || {};
+    projectHistory = Object.values(data); // convert object to array
+    renderHistory(); // function mo para ipakita sa table
+  });
+}
+
+// Call this after Firebase initialization
+fetchHistoryFromFirebase();
 
 // Items List
 let items=[
