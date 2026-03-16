@@ -24,6 +24,12 @@ body.dark { background:#0f172a; color:white; overflow-x:hidden; }
 .sidebar a:hover { background:#1e40af; color:#fff; }
 .sidebar a.active { background:#3b82f6; color:white; font-weight:600; }
 .sidebar .toggle-btn { margin-top:auto; }
+.card h6 {
+  font-size: 16px;
+}
+.card canvas {
+  height: 350px;
+}
 .card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
 body.dark .card { background:#1e293b; color:white; }
 input, select { transition:.3s; background:white; color:#111; font-size:13px; }
@@ -40,7 +46,14 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 .history-table-wrapper{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .print-header p { margin-top:5px; margin-bottom:2px; text-align:left; }
 .print-header strong { display:block; text-align:center; }
-@media(max-width:768px){
+@media (max-width: 768px) {
+  .card h6 {
+    font-size: 13px;   /* smaller heading */
+  }
+  #salesLineChart, #salesBarChart {
+    height: 200px !important;  /* smaller chart height */
+  }
+}
 .history-table-wrapper table{ min-width:600px; }
 .history-table-wrapper th, .history-table-wrapper td{ text-align:left !important; }
 .sidebar { width:80px; padding:0.5rem 0; }
