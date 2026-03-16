@@ -88,13 +88,14 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <div class="card p-3 bg-danger text-white" style="width: 300px;"><h6>Monthly Profit</h6><h5>₱ <span id="monthlyProfit">0</span></h5></div>
 </div>
 <div class="d-flex gap-2 flex-wrap">
-<div class="card p-3" style="flex:1; height: 400px;">
-<h6>Sales Line Chart</h6>
-<canvas id="salesLineChart" style="height: 350px;"></canvas>
-</div>
-<div class="card p-3" style="flex:1; height: 400px;">
-<h6>Sales Bar Chart</h6>
-<canvas id="salesBarChart" style="height: 350px;"></canvas>
+  <div class="card p-3 d-flex flex-column" style="flex:1; min-height: 400px;">
+    <h6>Sales Line Chart</h6>
+    <canvas id="salesLineChart" style="flex:1;"></canvas>
+  </div>
+  <div class="card p-3 d-flex flex-column" style="flex:1; min-height: 400px;">
+    <h6>Sales Bar Chart</h6>
+    <canvas id="salesBarChart" style="flex:1;"></canvas>
+  </div>
 </div>
 </div>
 </div>
