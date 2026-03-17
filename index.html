@@ -86,20 +86,45 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <!-- Dashboard -->
 <div class="tab-pane fade show active" id="dashboardTab">
 <div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
-<div class="card p-3 bg-secondary text-white" style="width: 300px;"> <h6>Daily Sales</h6><h5>₱ <span id="dailySales">0</span></h5></div>
-<div class="card p-3 bg-success text-white" style="width: 300px;" ><h6>Daily Profit</h6><h5>₱ <span id="dailyProfit">0</span></h5></div>
-<div class="card p-3 bg-primary text-white" style="width: 300px;"><h6>Monthly Sales</h6><h5>₱ <span id="monthlySales">0</span></h5></div>
-<div class="card p-3 bg-danger text-white" style="width: 300px;"><h6>Monthly Profit</h6><h5>₱ <span id="monthlyProfit">0</span></h5></div>
+
+  <!-- Summary Cards -->
+  <div class="card p-3 bg-secondary text-white flex-fill" style="min-width: 150px;"><h6>Daily Sales</h6><h5>₱ <span id="dailySales">0</span></h5></div>
+  <div class="card p-3 bg-success text-white flex-fill" style="min-width: 150px;"><h6>Daily Profit</h6><h5>₱ <span id="dailyProfit">0</span></h5></div>
+  <div class="card p-3 bg-primary text-white flex-fill" style="min-width: 150px;"><h6>Monthly Sales</h6><h5>₱ <span id="monthlySales">0</span></h5></div>
+  <div class="card p-3 bg-danger text-white flex-fill" style="min-width: 150px;"><h6>Monthly Profit</h6><h5>₱ <span id="monthlyProfit">0</span></h5></div>
+ 
+  <!-- Profit Split Cards -->
+<!-- Profit Split Cards with Gradient -->
+<div class="card p-3 text-white flex-fill" style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
+  <h6>Mark Aaron Profit (30%)</h6>
+  <h5>₱ <span id="person1Share">0</span></h5>
 </div>
-<div class="d-flex gap-2 flex-wrap">
-<div class="card p-3" style="flex:1; height: 400px;">
-<h6>Sales Line Chart</h6>
-<canvas id="salesLineChart" style="height:350px;"></canvas>
+<div class="card p-3 text-white flex-fill" style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
+  <h6>Kaye Profit (30%)</h6>
+  <h5>₱ <span id="person2Share">0</span></h5>
 </div>
-<div class="card p-3" style="flex:1; height: 400px;">
-<h6>Sales Bar Chart</h6>
-<canvas id="salesBarChart" style="height: 350px;"></canvas>
+<br>
+<div class="card p-3 text-white flex-fill" style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
+  <h6>Person 3 Profit (30%)</h6>
+  <h5>₱ <span id="person3Share">0</span></h5>
 </div>
+<div class="card p-3 bg-info text-white flex-fill" style="min-width: 140px;">
+  <h6>Maintenance (10%)</h6>
+  <h5>₱ <span id="maintenanceShare">0</span></h5>
+</div>
+
+</div>
+
+<!-- Charts Below -->
+<div class="d-flex gap-2 flex-wrap mb-3">
+  <div class="card p-3 flex-fill" style="min-width: 280px; height:400px;">
+    <h6>Sales Line Chart</h6>
+    <canvas id="salesLineChart" style="height:350px;"></canvas>
+  </div>
+  <div class="card p-3 flex-fill" style="min-width: 280px; height:400px;">
+    <h6>Sales Bar Chart</h6>
+    <canvas id="salesBarChart" style="height:350px;"></canvas>
+  </div>
 </div>
 </div>
 
@@ -379,17 +404,23 @@ function saveReceipt(){
   let paymentType=document.getElementById("paymentType").value;
   let dpAmount=paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
   
-  const receipt = {
-    rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toLocaleDateString(),
-    shipTo: document.getElementById("custName").value||"-",
-    address: document.getElementById("custAddress").value||"-",
-    total: total,
-    profit: profit,
-    paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: paymentType,
-    downpayment: dpAmount
-  };
+ const receipt = {
+  rno: document.getElementById("rNoPrint").innerText,
+  date: new Date().toLocaleDateString(),
+  shipTo: document.getElementById("custName").value || "-",
+  address: document.getElementById("custAddress").value || "-",
+  total: total,
+  profit: profit,
+  paymentMethod: document.getElementById("paymentMethod").value,
+  paymentType: paymentType,
+  downpayment: dpAmount,
+  monthlyProfitSplit: { // new field
+    person1: Math.round(profit * 0.3),
+    person2: Math.round(profit * 0.3),
+    person3: Math.round(profit * 0.3),
+    maintenance: Math.round(profit * 0.1)
+  }
+};
 
   // Save to localStorage
   receiptHistory.push(receipt);
@@ -600,22 +631,41 @@ function applyFilters(){
 
 // Update Dashboard
 function updateDashboard(){
-  let today=new Date();
-  let todayStr=today.toLocaleDateString();
-  let dailySales=0,dailyProfit=0,monthlySales=0,monthlyProfit=0;
-  let currentMonth=today.getMonth()+1;
-  receiptHistory.forEach(r=>{
-    let rDate=new Date(r.date);
-    let rMonth=rDate.getMonth()+1;
-    let rTotal=Number(r.total)||0;
-    let rProfit=rTotal*0.45;
-    if(rMonth===currentMonth){monthlySales+=rTotal; monthlyProfit+=rProfit;}
-    if(r.date===todayStr){dailySales+=rTotal; dailyProfit+=rProfit;}
+  let today = new Date();
+  let todayStr = today.toLocaleDateString();
+  let dailySales = 0, dailyProfit = 0, monthlySales = 0, monthlyProfit = 0;
+  let currentMonth = today.getMonth() + 1;
+
+  receiptHistory.forEach(r => {
+    let rDate = new Date(r.date);
+    let rMonth = rDate.getMonth() + 1;
+    let rTotal = Number(r.total) || 0;
+    let rProfit = rTotal * 0.45; // your existing profit calculation
+    if(rMonth === currentMonth){
+      monthlySales += rTotal; 
+      monthlyProfit += rProfit;
+    }
+    if(r.date === todayStr){
+      dailySales += rTotal; 
+      dailyProfit += rProfit;
+    }
   });
-  document.getElementById("dailySales").innerText=dailySales;
-  document.getElementById("dailyProfit").innerText=dailyProfit;
-  document.getElementById("monthlySales").innerText=monthlySales;
-  document.getElementById("monthlyProfit").innerText=monthlyProfit;
+
+  // Update dashboard totals
+  document.getElementById("dailySales").innerText = dailySales;
+  document.getElementById("dailyProfit").innerText = dailyProfit;
+  document.getElementById("monthlySales").innerText = monthlySales;
+  document.getElementById("monthlyProfit").innerText = monthlyProfit;
+
+  // 💰 Split monthly profit
+  const personShare = Math.round(monthlyProfit * 0.3);
+  const maintenanceShare = Math.round(monthlyProfit * 0.1);
+
+  document.getElementById("person1Share").innerText = personShare;
+  document.getElementById("person2Share").innerText = personShare;
+  document.getElementById("person3Share").innerText = personShare;
+  document.getElementById("maintenanceShare").innerText = maintenanceShare;
+
   renderCharts();
 }
 
