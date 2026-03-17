@@ -95,22 +95,20 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
  
   <!-- Profit Split Cards -->
 <!-- Profit Split Cards with Gradient -->
-<div class="card p-3 text-white flex-fill" style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
-  <h6>Mark Aaron Profit (30%)</h6>
-  <h5>₱ <span id="person1Share">0</span></h5>
+<!-- Profit & Maintenance Cards -->
+<div class="card p-3 text-white flex-fill" 
+     style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
+  <h6>30% Profit Each</h6>
+  <h5>₱ <span id="profitEach">0</span></h5>
+  <p id="monthLabel" style="font-size:12px; margin-top:5px;"></p>
 </div>
-<div class="card p-3 text-white flex-fill" style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
-  <h6>Kaye Profit (30%)</h6>
-  <h5>₱ <span id="person2Share">0</span></h5>
-</div>
-<br>
-<div class="card p-3 text-white flex-fill" style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
-  <h6>Person 3 Profit (30%)</h6>
-  <h5>₱ <span id="person3Share">0</span></h5>
-</div>
+
 <div class="card p-3 bg-info text-white flex-fill" style="min-width: 140px;">
   <h6>Maintenance (10%)</h6>
   <h5>₱ <span id="maintenanceShare">0</span></h5>
+  <p id="monthLabelMaint" style="font-size:12px; margin-top:5px;">
+    <!-- optional: month label here if needed -->
+  </p>
 </div>
 
 </div>
@@ -658,13 +656,13 @@ function updateDashboard(){
   document.getElementById("monthlyProfit").innerText = monthlyProfit;
 
   // 💰 Split monthly profit
-  const personShare = Math.round(monthlyProfit * 0.3);
-  const maintenanceShare = Math.round(monthlyProfit * 0.1);
+// 30% Profit Each
+const profitEach = Math.round(monthlyProfit * 0.3);
+document.getElementById("profitEach").innerText = profitEach;
 
-  document.getElementById("person1Share").innerText = personShare;
-  document.getElementById("person2Share").innerText = personShare;
-  document.getElementById("person3Share").innerText = personShare;
-  document.getElementById("maintenanceShare").innerText = maintenanceShare;
+// Maintenance 10%
+const maintenanceShare = Math.round(monthlyProfit * 0.1);
+document.getElementById("maintenanceShare").innerText = maintenanceShare;
 
   renderCharts();
 }
@@ -682,6 +680,15 @@ function renderCharts(){
   lineChartInstance=new Chart(lineCtx,{type:'line',data:{labels:labels,datasets:[{label:'Sales Trend',data:data,borderColor:'#22c55e',fill:false,tension:0.3}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
 }
 
+const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+document.getElementById("monthLabel").innerText = monthNames[today.getMonth()] + " " + today.getFullYear();
+
+// Monthly reset check
+let lastMonth = localStorage.getItem("lastMonth") || today.getMonth();
+if (lastMonth != today.getMonth()) {
+  Swal.fire("New Month!", "Dashboard has been reset for the new month.", "info");
+  localStorage.setItem("lastMonth", today.getMonth());
+}
 // Quotation
 function generateQuotation(){
   let custName=document.getElementById("qCustName").value;
