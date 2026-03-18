@@ -71,10 +71,10 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <a class="nav-link" data-bs-toggle="tab" href="#receiptTab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#historyTab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a><br>
-<a class="nav-link" data-bs-toggle="tab" href="#inventoryTab">
+<a href="inventoryTab.html" class="nav-link">
   <i class="bi bi-box-seam fs-5"></i>
-  <span class="d-none d-md-inline">Inventory</span>
-</a>
+  Inventory
+</a><br>
 <a class="nav-link" href="tracking.html">
   <i class="bi bi-kanban fs-5"></i>
   <span class="d-none d-md-inline">Tracker</span>
@@ -229,38 +229,22 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 </div>
 </div>
 </div>
-<!-- Inventory Tab -->
+<!-- Tab content -->
 <div class="tab-pane fade" id="inventoryTab">
-  <div class="card p-3 mb-3">
+  <div class="card p-3">
     <h5>Inventory Management</h5>
-    <div class="row g-2 mb-2">
-      <div class="col-md-4">
-        <select id="invCategory" class="form-select mb-1">
-          <option value="">Select Category</option>
-        </select>
-        <input type="text" id="invItemName" placeholder="Item Name" class="form-control mb-1">
-      </div>
-      <div class="col-md-2">
-        <input type="number" id="invStock" placeholder="Stock" class="form-control mb-1">
-      </div>
-      <div class="col-md-2">
-        <input type="number" id="invUnitPrice" placeholder="Unit Price" class="form-control mb-1">
-      </div>
-      <div class="col-md-2">
-        <button class="btn btn-blue btn-professional" onclick="addInventoryItem()">Add</button>
-      </div>
-    </div>
-
-    <div class="history-table-wrapper">
-      <table class="table table-sm" id="inventoryTable">
-        <thead>
-          <tr>
-            <th>No</th><th>Category</th><th>Item</th><th>Stock</th><th>Unit Price</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="inventoryBody"></tbody>
-      </table>
-    </div>
+    <select id="invCategory" class="form-select mb-1">
+      <option value="">Select Item</option>
+    </select>
+    <input type="number" id="invStock" placeholder="Stock" class="form-control mb-1">
+    <input type="number" id="invUnitPrice" placeholder="Unit Price" class="form-control mb-1">
+    <button class="btn btn-green btn-professional" onclick="addInventoryItem()">Add Item</button>
+    <table class="table table-sm mt-2">
+      <thead>
+        <tr><th>No</th><th>Item Name</th><th>Stock</th><th>Unit Price</th><th>Action</th></tr>
+      </thead>
+      <tbody id="inventoryBody"></tbody>
+    </table>
   </div>
 </div>
 <!-- Quotation Tab -->
@@ -303,6 +287,7 @@ Quotation for Order
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="inventory.js"></script>
 
 <script>
 //=================== FULL JS UPDATED ===================
@@ -535,38 +520,50 @@ function fetchReceiptsFromFirebase(){
   });
 }
 // Save Receipt
-function saveReceipt(){
+function saveReceipt() {
   if(count===0){Swal.fire("Error","No items added","error");return;}
-  let profit=total*0.45;
-  let paymentType=document.getElementById("paymentType").value;
-  let dpAmount=paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
-  
- const receipt = {
-  rno: document.getElementById("rNoPrint").innerText,
-  date: new Date().toLocaleDateString(),
-  shipTo: document.getElementById("custName").value || "-",
-  address: document.getElementById("custAddress").value || "-",
-  total: total,
-  profit: profit,
-  paymentMethod: document.getElementById("paymentMethod").value,
-  paymentType: paymentType,
-  downpayment: dpAmount,
-  monthlyProfitSplit: { // new field
-    person1: Math.round(profit * 0.3),
-    person2: Math.round(profit * 0.3),
-    person3: Math.round(profit * 0.3),
-    maintenance: Math.round(profit * 0.1)
-  }
-};
 
-  // Save to localStorage
-  receiptHistory.push(receipt);
-  localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-  
-  // Save to Firebase
+  let profit = total * 0.45;
+  let paymentType = document.getElementById("paymentType").value;
+  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
+
+  // Prepare receipt object
+  const receipt = {
+    rno: document.getElementById("rNoPrint").innerText,
+    date: new Date().toLocaleDateString(),
+    shipTo: document.getElementById("custName").value || "-",
+    address: document.getElementById("custAddress").value || "-",
+    total: total,
+    profit: profit,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    paymentType: paymentType,
+    downpayment: dpAmount,
+    items: undoStack.map(item => ({
+      name: item.itemName,
+      qty: item.qty,
+      price: item.price,
+      size: item.size || null
+    }))
+  };
+
+  // Save receipt to Firebase
   saveReceiptToFirebase(receipt);
 
+  // --- SUBTRACT STOCK FROM INVENTORY ---
+  receipt.items.forEach(item => {
+    const itemRef = db.ref('inventory/' + item.name);
+    itemRef.once('value', snapshot => {
+      if(snapshot.exists()){
+        const currentStock = snapshot.val().stock || 0;
+        const newStock = currentStock - item.qty;
+        itemRef.update({ stock: newStock < 0 ? 0 : newStock });
+      }
+    });
+  });
+
   Swal.fire("Saved","Receipt saved!","success");
+
+  // Reset receipt form
   document.querySelector("#previewTable tbody").innerHTML="";
   total=0; count=0; undoStack=[];
   document.getElementById("custName").value="";
@@ -917,134 +914,130 @@ function downloadQuotationImage() {
 }
 // ================= INVENTORY MANAGEMENT WITH GROUPS =================
 
-// Grouped Inventory Categories
-const inventoryGroups = {
-  "Sublimation": ["T-Shirt", "Mug", "Ref Magnets", "Totebag"],
-  "Photo Print": ["3R", "4R", "5R", "A4", "Polaroid"],
-  "Rush ID": ["Package 1","Package 2","Package 3","Package 4","Package 5"],
-  "Printing": ["Document Short", "Document A4", "Document Long"],
-  "Others": ["Desk Calendar","A4 Sintra Board","A3 Sintra Board"]
-};
-
-const catSelect = document.getElementById("invCategory");
-
-// Populate select with grouped optgroups
-for (const [group, items] of Object.entries(inventoryGroups)) {
-  const optGroup = document.createElement("optgroup");
-  optGroup.label = group;
-  items.forEach(itemName => {
-    const option = document.createElement("option");
-    option.value = itemName;
-    option.textContent = itemName;
-    optGroup.appendChild(option);
-  });
-  catSelect.appendChild(optGroup);
-}
+// inventory.js
 
 // Firebase reference
-const invRef = db.ref('inventory');
+const inventoryRef = firebase.database().ref("inventory");
 
-// Add inventory item
+// Populate categories only when inventory tab is shown
+document.querySelector('a[href="#inventoryTab"]').addEventListener('shown.bs.tab', function () {
+    const catSelect = document.getElementById("invCategory");
+    if (catSelect.options.length > 1) return; // prevent double population
+
+    const inventoryGroups = {
+        "Sublimation": ["T-Shirt", "Mug", "Ref Magnets", "Totebag"],
+        "Photo Print": ["3R", "4R", "5R", "A4", "Polaroid"],
+        "Rush ID": ["Package 1","Package 2","Package 3","Package 4","Package 5"],
+        "Printing": ["Document Short", "Document A4", "Document Long"],
+        "Others": ["Desk Calendar","A4 Sintra Board","A3 Sintra Board"]
+    };
+
+    catSelect.innerHTML = '<option value="">Select Item</option>';
+
+    for (const [group, items] of Object.entries(inventoryGroups)) {
+        const optGroup = document.createElement("optgroup");
+        optGroup.label = group;
+        items.forEach(itemName => {
+            const option = document.createElement("option");
+            option.value = itemName;
+            option.textContent = itemName;
+            optGroup.appendChild(option);
+        });
+        catSelect.appendChild(optGroup);
+    }
+
+    updateInventoryTable(); // show existing items
+});
+
+// Add inventory item to Firebase
 function addInventoryItem() {
-  const itemName = document.getElementById("invCategory").value;
-  const stock = Number(document.getElementById("invStock").value);
-  const unitPrice = Number(document.getElementById("invUnitPrice").value);
+    const name = document.getElementById("invCategory").value;
+    const stock = Number(document.getElementById("invStock").value);
+    const price = Number(document.getElementById("invUnitPrice").value);
 
-  if (!itemName || stock <= 0 || unitPrice <= 0) {
-    Swal.fire("Error", "Please fill all fields correctly", "error");
-    return;
-  }
+    if (!name || stock <= 0 || price <= 0) {
+        Swal.fire("Error", "Please fill all fields", "error");
+        return;
+    }
 
-  const id = Date.now();
-  const item = { id, itemName, stock, unitPrice };
+    const newItemRef = inventoryRef.push();
+    newItemRef.set({ name, stock, price });
 
-  invRef.child(id).set(item)
-    .then(() => {
-      Swal.fire("Success", "Item added!", "success");
-      document.getElementById("invStock").value = "";
-      document.getElementById("invUnitPrice").value = "";
-    })
-    .catch(err => console.error(err));
+    document.getElementById("invStock").value = "";
+    document.getElementById("invUnitPrice").value = "";
+    Swal.fire("Success", "Item added!", "success");
 }
 
 // Update inventory table
 function updateInventoryTable() {
-  invRef.on('value', snapshot => {
-    const data = snapshot.val() || {};
     const tbody = document.getElementById("inventoryBody");
     tbody.innerHTML = "";
-    let count = 1;
-    Object.values(data).forEach(item => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${count++}</td>
-          <td>${item.itemName}</td>
-          <td>${item.stock}</td>
-          <td>₱${item.unitPrice}</td>
-          <td>
-            <button class="btn btn-sm btn-blue" onclick="editInventory(${item.id})">🖊️</button>
-            <button class="btn btn-sm btn-red" onclick="deleteInventory(${item.id})">✖</button>
-          </td>
-        </tr>
-      `;
+    inventoryRef.once("value", snapshot => {
+        const data = snapshot.val() || {};
+        Object.entries(data).forEach(([id, item], i) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i+1}</td>
+                <td>${item.name}</td>
+                <td>${item.stock}</td>
+                <td>₱${item.price}</td>
+                <td>
+                    <button class="btn btn-sm btn-blue" onclick="editInventory('${id}')">Edit</button>
+                    <button class="btn btn-sm btn-red" onclick="deleteInventory('${id}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
     });
-  });
 }
 
-// Delete inventory item
-function deleteInventory(id){
-  Swal.fire({
-    title: 'Delete Item?',
-    text: 'Are you sure you want to delete this item?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Yes'
-  }).then(res => {
-    if(res.isConfirmed){
-      invRef.child(id).remove()
-        .then(() => Swal.fire("Deleted", "Item removed", "success"))
-        .catch(err => console.error(err));
-    }
-  });
-}
-
-// Edit inventory item
-function editInventory(id){
-  invRef.child(id).once('value').then(snapshot => {
-    const item = snapshot.val();
-    if(!item) return;
-
+// Delete item
+function deleteInventory(id) {
     Swal.fire({
-      title: 'Edit Item',
-      html: `
-        <div class="modal-left">
-          <label>Item Name</label>
-          <input id="swalItemName" class="form-control mb-1" value="${item.itemName}">
-          <label>Stock</label>
-          <input id="swalStock" type="number" class="form-control mb-1" value="${item.stock}">
-          <label>Unit Price</label>
-          <input id="swalUnitPrice" type="number" class="form-control mb-1" value="${item.unitPrice}">
-        </div>
-      `,
-      focusConfirm: false,
-      showCancelButton: true,
-      preConfirm: () => ({
-        itemName: document.getElementById("swalItemName").value.trim(),
-        stock: Number(document.getElementById("swalStock").value),
-        unitPrice: Number(document.getElementById("swalUnitPrice").value)
-      })
+        title: "Delete?",
+        text: "Are you sure?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes"
     }).then(res => {
-      if(res.isConfirmed){
-        invRef.child(id).update(res.value)
-          .then(() => Swal.fire("Updated", "Inventory updated", "success"))
-          .catch(err => console.error(err));
-      }
+        if (res.isConfirmed) {
+            inventoryRef.child(id).remove();
+            Swal.fire("Deleted", "Item removed", "success");
+            updateInventoryTable();
+        }
     });
-  });
 }
 
-// Initialize table
-updateInventoryTable();
+// Edit item
+function editInventory(id) {
+    inventoryRef.child(id).once("value", snapshot => {
+        const item = snapshot.val();
+        Swal.fire({
+            title: "Edit Inventory",
+            html: `
+                <input id="swalName" class="swal2-input" value="${item.name}">
+                <input id="swalStock" type="number" class="swal2-input" value="${item.stock}">
+                <input id="swalPrice" type="number" class="swal2-input" value="${item.price}">
+            `,
+            preConfirm: () => ({
+                name: document.getElementById("swalName").value,
+                stock: Number(document.getElementById("swalStock").value),
+                price: Number(document.getElementById("swalPrice").value)
+            }),
+            showCancelButton: true
+        }).then(res => {
+            if (res.isConfirmed) {
+                inventoryRef.child(id).update(res.value);
+                Swal.fire("Updated", "Item updated", "success");
+                updateInventoryTable();
+            }
+        });
+    });
+}
+
+// Listen for changes in real-time
+inventoryRef.on("value", updateInventoryTable);
+
 </script>
 </body>
 </html>
