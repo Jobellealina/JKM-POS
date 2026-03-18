@@ -115,7 +115,7 @@ function login() {
   if(username === validUsername && password === validPassword){
     localStorage.setItem('isLoggedIn', 'true');
     // Direct redirect without SweetAlert
-    window.location.href = 'index.html';
+    window.location.href = 'dashboard.html';
   } else {
     alert('Invalid username or password'); // simple alert on fail
   }
