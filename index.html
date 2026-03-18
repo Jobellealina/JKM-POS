@@ -3,1041 +3,132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JKM Prime Digital Prints</title>
+<title>Login - JKM PRIME DIGITAL PRINTS</title>
 <link rel="icon" href="logo.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; margin:0; }
-body.dark { background:#0f172a; color:white; overflow-x:hidden; }
-.sidebar { height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
-.sidebar a { color:white; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
-.sidebar a:hover { background:#1e40af; color:#fff; }
-.sidebar a.active { background:#3b82f6; color:white; font-weight:600; }
-.sidebar .toggle-btn { margin-top:auto; }
-.card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
-body.dark .card { background:#1e293b; color:white; }
-input, select { transition:.3s; background:white; color:#111; font-size:13px; }
-body.dark input, body.dark select { background:#334155; color:white; border-color:#475569; }
-.btn-professional { width:83px; font-weight:600; border-radius:6px; padding:5px 0; color:white; text-align:center; transition:all .2s; font-size:13px; }
-.btn-blue { background:#2563eb; } .btn-red { background:#ef4444; } .btn-green { background:#22c55e; }
-.btn-blue:hover { background:#3b82f6; } .btn-red:hover { background:#f87171; } .btn-green:hover { background:#4ade80; }
-.print-area { width:105mm; padding:10px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
-body.dark .print-area { background:#1e293b; color:white; }
-.watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
-.table-sm th, .table-sm td { padding:2px 4px; font-size:11px; border:none; white-space: nowrap; text-align:center; }
-body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
-.main-content { margin-left:220px; padding:1rem; min-height:100vh; }
-.history-table-wrapper{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.print-header p { margin-top:5px; margin-bottom:2px; text-align:left; }
-.print-header strong { display:block; text-align:center; }
-@media(max-width:768px){
-.history-table-wrapper table{ min-width:600px; }
-.history-table-wrapper th, .history-table-wrapper td{ text-align:left !important; }
-.sidebar { width:80px; padding:0.5rem 0; }
-.sidebar a { justify-content:center; padding:10px 0; flex-direction:column; font-size:11px; }
-.sidebar h5 { display:none; }
-.sidebar img { display:block; width:50px; height:50px; margin:0 auto 10px; }
-.main-content { margin-left:80px; padding:0.5rem; }
-.card { font-size:12px; }
-.print-area { width:100%; padding:10px; font-size:11px; }
-.dashboard-columns .card { flex:1 1 100%; }
+body {
+  font-family:'Courier New', monospace;
+  background:#eef2f7;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
 }
-@media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:15px; } }
-.tab-content > .tab-pane { min-height: calc(100vh - 2rem); overflow-y:auto; }
-.modal-left label{display:block; font-size:12px; margin-top:5px; font-weight:500;}
-.modal-left input, .modal-left select{width:100%; font-size:12px; margin-top:2px; padding:6px; border-radius:6px; border:1px solid #ccc;}
-.modal-left .modal-footer{display:flex; justify-content:flex-start; gap:10px; padding:5px;}
-.modal-left {padding:10px;}
-.modal-left h5 {margin-bottom:10px; font-size:16px; text-align:left;}
+.login-card {
+  background:white;
+  padding:2.5rem;
+  border-radius:10px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2);
+  width:380px;
+  max-width:90%;
+}
+.login-card h3 {
+  text-align:center;
+  margin-bottom:20px;
+}
+.login-card img {
+  display:block;
+  margin:0 auto 15px;
+  width:60px;
+  height:60px;
+  border-radius:10px;
+}
+.btn-login { width:100%; }
+
+/* Password label + eye button on same line */
+.password-label-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom:5px;
+  font-weight:500;
+}
+.password-wrapper {
+  position: relative;
+}
+.password-wrapper input {
+  width:100%;
+  padding-right:2.5rem; /* space for eye icon */
+}
+.password-wrapper i {
+  position: absolute;
+  top:50%;
+  right:10px;
+  transform:translateY(-50%);
+  cursor:pointer;
+  color:#2563eb;
+  font-size:1.1rem;
+}
 </style>
 </head>
 <body>
 
-<div class="sidebar">
-<img src="logo1.png" class="mb-3 mx-auto" style="border-radius:10px; height:50px; width:50px;">
-<h5 class="text-center mb-3">JKM Prime Digital Prints</h5><br>
-<nav class="nav flex-column" role="tablist">
-<a class="nav-link active" data-bs-toggle="tab" href="#dashboardTab"><i class="bi bi-speedometer2 fs-5"></i><span class="d-none d-md-inline">Dashboard</span></a><br>
-<a class="nav-link" data-bs-toggle="tab" href="#receiptTab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a><br>
-<a class="nav-link" data-bs-toggle="tab" href="#historyTab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a><br>
-<a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a><br>
-<a href="inventoryTab.html" class="nav-link">
-  <i class="bi bi-box-seam fs-5"></i>
-  Inventory
-</a><br>
-<a class="nav-link" href="tracking.html">
-  <i class="bi bi-kanban fs-5"></i>
-  <span class="d-none d-md-inline">Tracker</span>
-</a>
-</nav><br>
-<button class="btn btn-primary toggle-btn mx-auto mt-3" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
-</div>
+<div class="login-card">
+  <img src="logo.png" alt="JKM Logo">
+  <h3>JKM PRIME DIGITAL PRINTS</h3>
 
-<!-- Main Content -->
-<div class="main-content">
-<div class="tab-content">
-
-<!-- Dashboard -->
-<div class="tab-pane fade show active" id="dashboardTab">
-<div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
-
-  <!-- Summary Cards -->
-  <div class="card p-3 bg-secondary text-white flex-fill" style="min-width: 150px;"><h6>Daily Sales</h6><h5>₱ <span id="dailySales">0</span></h5></div>
-  <div class="card p-3 bg-success text-white flex-fill" style="min-width: 150px;"><h6>Daily Profit</h6><h5>₱ <span id="dailyProfit">0</span></h5></div>
-  <div class="card p-3 bg-primary text-white flex-fill" style="min-width: 150px;"><h6>Monthly Sales</h6><h5>₱ <span id="monthlySales">0</span></h5></div>
-  <div class="card p-3 bg-danger text-white flex-fill" style="min-width: 150px;"><h6>Monthly Profit</h6><h5>₱ <span id="monthlyProfit">0</span></h5></div>
- 
-  <!-- Profit Split Cards -->
-<!-- Profit Split Cards with Gradient -->
-<!-- Profit & Maintenance Cards -->
-<div class="card p-3 text-white flex-fill" 
-     style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
-  <h6>30% Profit Each</h6>
-  <h5>₱ <span id="profitEach">0</span></h5>
-  <p id="monthLabel" style="font-size:12px; margin-top:5px;"></p>
-</div>
-
-<div class="card p-3 bg-info text-white flex-fill" style="min-width: 140px;">
-  <h6>Maintenance (10%)</h6>
-  <h5>₱ <span id="maintenanceShare">0</span></h5>
-  <p id="monthLabelMaint" style="font-size:12px; margin-top:5px;">
-    <!-- optional: month label here if needed -->
-  </p>
-</div>
-
-</div>
-
-<!-- Charts Below -->
-<div class="d-flex gap-2 flex-wrap mb-3">
-  <div class="card p-3 flex-fill" style="min-width: 280px; height:400px;">
-    <h6>Sales Line Chart</h6>
-    <canvas id="salesLineChart" style="height:350px;"></canvas>
+  <div class="mb-3">
+    <label for="username" class="form-label">Username</label>
+    <input type="text" id="username" class="form-control" placeholder="Enter Username">
   </div>
-  <div class="card p-3 flex-fill" style="min-width: 280px; height:400px;">
-    <h6>Sales Bar Chart</h6>
-    <canvas id="salesBarChart" style="height:350px;"></canvas>
+
+  <div class="mb-3">
+    <div class="password-label-wrapper">
+      <label for="password" class="form-label mb-0">Password</label>
+      <i class="bi bi-eye" id="togglePass"></i>
+    </div>
+    <div class="password-wrapper">
+      <input type="password" id="password" class="form-control" placeholder="Enter Password">
+    </div>
   </div>
-</div>
-</div>
 
-<!-- Add Receipt Tab -->
-<div class="tab-pane fade" id="receiptTab">
-<div class="row">
-<div class="col-md-6">
-<div class="card p-3 mb-3">
-<h5>Add Service</h5>
-<div class="row g-2 mb-2">
-<div class="col-md-5">
-  <select id="category" class="form-select"></select>
-  <select id="item" class="form-select"></select>
+  <button class="btn btn-primary btn-login" onclick="login()">Login</button>
 </div>
-<div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
-<div class="col-md-3"><input type="number" id="price" class="form-control"></div>
-<div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
-</div>
-<input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
-<input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
-<select id="paymentMethod" class="form-select mb-1">
-<option>Cash</option><option>GCash</option><option>Bank Transfer</option>
-</select>
-<select id="paymentType" class="form-select mb-1" onchange="toggleDownpayment()">
-<option value="Full Payment">Full Payment</option>
-<option value="Downpayment">Downpayment</option>
-</select>
-<input type="number" id="downpaymentAmount" placeholder="Downpayment Amount" class="form-control mb-1" style="display:none;">
-<div class="mt-2 d-flex gap-1 flex-wrap">
-<button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
-<button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
-<button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
-</div>
-</div>
-</div>
-
-<div class="col-md-6">
-<div id="receiptPreview" class="print-area">
-<img src="Watermark.png" class="watermark">
-<div class="print-header mb-2">
-<img src="logo.png" width="50" class="d-block mx-auto">
-<strong>JKM PRIME DIGITAL PRINTS <br> Printing Services</strong><br>
-<p>Name: <span id="rNamePrint"></span></p>
-<p>Address: <span id="rAddressPrint"></span></p>
-<p>Date: <span id="rDatePrint"></span></p>
-<p>Receipt No.: <span id="rNoPrint"></span></p>
-<p>MOP: <span id="rPaymentPrint"></span></p>
-<p><span id="rPaymentTypePrint"></span></p>
-</div>
-<div style="overflow-x:auto;">
-<table class="table table-sm" id="previewTable">
-<thead>
-<tr style="border-bottom: 1px solid #b5c6eb; border-top: 1px solid #b5c6eb;"> <!-- dark underline -->
-  <th>No</th>
-  <th>Description</th>
-  <th>Qty</th>
-  <th>Price</th>
-  <th>Amount</th>
-  <th>Total</th>
-</tr>
-</thead>
-<tbody><tr style="height:7px;"></tr></tbody><br>
-<tfoot>
-  <tr style="height:25px;"></tr> <!-- small spacing before TOTAL -->
-  <tr>
-    <th colspan="5" style="text-align:right;">TOTAL</th>
-    <th id="grandTotal">₱0</th>
-  </tr>
-</tfoot>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- History Tab -->
-<div class="tab-pane fade" id="historyTab">
-<div class="card p-3">
-<h5 style="color:#7995f2;">Receipt History</h5>
-<div class="row mb-2">
-<div class="col-md-3"><input type="date" id="fromDate" class="form-control" placeholder="From Date"></div>
-<div class="col-md-3"><input type="date" id="toDate" class="form-control" placeholder="To Date"></div>
-<div class="col-md-3"><input type="text" id="searchInput" class="form-control" placeholder="Search Name or Receipt No."></div>
-<div class="col-md-3"><button class="btn btn-blue btn-professional" onclick="applyFilters()">Filter</button></div>
-</div>
-<div class="history-table-wrapper">
-<table class="table table-sm" id="historyTable">
-<thead>
-<tr>
-<th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Payment Type</th><th>Action</th>
-</tr>
-</thead>
-<tbody id="receiptHistory"></tbody>
-</table>
-</div>
-<div class="mb-2">
-<button class="btn btn-blue btn-professional" onclick="exportToExcel()">Excel</button>
-<button class="btn btn-danger btn-professional" onclick="exportToPDF()">PDF</button>
-</div>
-</div>
-</div>
-<!-- Tab content -->
-<div class="tab-pane fade" id="inventoryTab">
-  <div class="card p-3">
-    <h5>Inventory Management</h5>
-    <select id="invCategory" class="form-select mb-1">
-      <option value="">Select Item</option>
-    </select>
-    <input type="number" id="invStock" placeholder="Stock" class="form-control mb-1">
-    <input type="number" id="invUnitPrice" placeholder="Unit Price" class="form-control mb-1">
-    <button class="btn btn-green btn-professional" onclick="addInventoryItem()">Add Item</button>
-    <table class="table table-sm mt-2">
-      <thead>
-        <tr><th>No</th><th>Item Name</th><th>Stock</th><th>Unit Price</th><th>Action</th></tr>
-      </thead>
-      <tbody id="inventoryBody"></tbody>
-    </table>
-  </div>
-</div>
-<!-- Quotation Tab -->
-<div class="tab-pane fade" id="quotationTab">
-<div class="row">
-<div class="col-md-6">
-<div class="card p-3 mb-3">
-<h5>Create Quotation</h5>
-<input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
-<select id="qItemSelect" class="form-select mb-1"></select>
-<input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
-<input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
-<div class="mt-2 d-flex gap-1 flex-wrap">
-<button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
-<button class="btn btn-green btn-professional" onclick="downloadQuotationPDF()">Download PDF</button>
-<button class="btn btn-blue btn-professional" onclick="addQuotationItem()">Add Item</button>
-<button class="btn btn-blue btn-professional" onclick="downloadQuotationImage()">Download as Image</button>
-</div>
-</div>
-</div>
-<div class="col-md-6">
-<div id="quotationPreview" class="print-area">
-<img src="Watermark.png" class="watermark">
-<div class="text-center mb-2">
-<img src="logo.png" width="60"><br>
-<strong>JKM PRIME DIGITAL PRINTS</strong><br>
-Quotation for Order
-</div>
-<br>
-<p>Date: <span id="qDatePrint"></span></p>
-<p>To: <span id="qNamePrint"></span></p>
-<p id="quotationText"></p>
-</div>
-</div>
-</div>
-</div>
-
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script src="inventory.js"></script>
 
 <script>
-//=================== FULL JS UPDATED ===================
-let quotationItems = [];
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-  databaseURL: "https://jkm-printing-system-default-rtdb.firebaseio.com/",
-  projectId: "your-project-id",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+// Show/Hide Password
+const togglePass = document.getElementById('togglePass');
+const passwordInput = document.getElementById('password');
 
-function fetchHistoryFromFirebase(){
-  const ref = db.ref('trackingProjects'); // o kung anong path sa Firebase
-  ref.on('value', snapshot => {
-    const data = snapshot.val() || {};
-    projectHistory = Object.values(data); // convert object to array
-    renderHistory(); // function mo para ipakita sa table
-  });
-}
-
-// Call this after Firebase initialization
-fetchHistoryFromFirebase();
-
-// Items List
-let services = {
-  "Photo Print": [
-    {name:"3R Photo Print",price:20},
-    {name:"4R Photo Print",price:25},
-    {name:"5R Photo Print",price:30},
-    {name:"A4 Photo Print",price:60},
-    {name:"Polaroid Photo Print",price:60}
-  ],
-
-  "Rush ID": [
-    {name:"Rush ID Package 1",price:35},
-    {name:"Rush ID Package 2",price:50},
-    {name:"Rush ID Package 3",price:45},
-    {name:"Rush ID Package 4",price:45},
-    {name:"Rush ID Package 5",price:65}
-  ],
-
-  "Printing": [
-    {name:"Document Print Short",price:7},
-    {name:"Document Print A4",price:8},
-    {name:"Document Print Long",price:10}
-  ],
-
-  "Customized T-Shirt":[
-    {name:"Small",price:280},
-    {name:"Medium",price:280},
-    {name:"Large",price:280},
-    {name:"XL",price:300}
-  ],
-
-  "Customized Mug":[
-    {name:"White Mug",price:150},
-    {name:"Magic Mug",price:200}
-  ],
-
-  "Customized Tumbler":[
-    {name:"Regular",price:180},
-    {name:"Premium",price:220}
-  ],
-  
-  "Customized Ref Magnets":[
-    {name:"ATM size",price:25},
-    {name:"3x3",price:45}
-  ],
-
-  "Others":[
-    {name:"Desk Calendar",price:150},
-    {name:"A4 Sintra Board",price:140},
-    {name:"A3 Sintra Board",price:290}
-  ]
-};
-
-function populateCategories(){
-  let cat=document.getElementById("category");
-  cat.innerHTML='<option value="">Select Category</option>';
-
-  Object.keys(services).forEach(c=>{
-    cat.innerHTML+=`<option value="${c}">${c}</option>`;
-  });
-}
-populateCategories();
-
-document.getElementById("category").addEventListener("change",function(){
-
-  let category=this.value;
-  let itemSelect=document.getElementById("item");
-
-  itemSelect.innerHTML='<option value="">Select Service</option>';
-
-  if(!services[category]) return;
-
-  services[category].forEach(i=>{
-    itemSelect.innerHTML+=`<option value="${i.name}" data-price="${i.price}">
-      ${i.name}
-    </option>`;
-  });
-
-});
-document.getElementById("item").addEventListener("change",function(){
-  let price=this.selectedOptions[0].dataset.price || 0;
-  document.getElementById("price").value=price;
-});
-// Populate Selects
-// Populate Selects (fixed)
-// Populate Selects with categories for both Add Receipt and Quotation
-function populateItems(){
-  let sel = document.getElementById("item");
-  let qsel = document.getElementById("qItemSelect");
-
-  sel.innerHTML = '<option value="">Select Service</option>';
-  qsel.innerHTML = '<option value="">Select Service</option>';
-
-  // Loop through categories
-  Object.keys(services).forEach(category => {
-    // Create optgroup for Add Receipt
-    let optgroup1 = document.createElement("optgroup");
-    optgroup1.label = category;
-    services[category].forEach(i => {
-      let option = document.createElement("option");
-      option.value = i.name;
-      option.dataset.price = i.price;
-      option.textContent = i.name;
-      optgroup1.appendChild(option);
-    });
-    sel.appendChild(optgroup1);
-
-    // Create optgroup for Quotation
-    let optgroup2 = document.createElement("optgroup");
-    optgroup2.label = category;
-    services[category].forEach(i => {
-      let option = document.createElement("option");
-      option.value = i.name;
-      option.dataset.price = i.price;
-      option.textContent = i.name;
-      optgroup2.appendChild(option);
-    });
-    qsel.appendChild(optgroup2);
-  });
-}
-populateItems();
-
-// Variables
-let count=0,total=0,undoStack=[];
-let receiptHistory=[]; // we will populate from Firebase
-fetchReceiptsFromFirebase();
-
-// Item select change
-document.getElementById("item").addEventListener("change",function(){
-  document.getElementById("price").value=this.selectedOptions[0].dataset.price || 0;
+togglePass.addEventListener('click', () => {
+  if(passwordInput.type === 'password'){
+    passwordInput.type = 'text';
+    togglePass.classList.remove('bi-eye');
+    togglePass.classList.add('bi-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    togglePass.classList.remove('bi-eye-slash');
+    togglePass.classList.add('bi-eye');
+  }
 });
 
-// Toggle downpayment input
-function toggleDownpayment(){
-  const type = document.getElementById("paymentType").value;
-  document.getElementById("downpaymentAmount").style.display = type==="Downpayment"?"block":"none";
-}
+function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
 
-// Add Item
-function addItem(){
-  const itemName=document.getElementById("item").value;
-  const qty=Number(document.getElementById("qty").value)||0;
-  const price=Number(document.getElementById("price").value)||0;
-  if(!itemName||qty<=0||price<=0) return;
-  const amount=Math.round(qty*price);
-  count++;
-  total+=amount;
-  undoStack.push({itemName,qty,price,amount});
-  let tbody=document.querySelector("#previewTable tbody");
-  let row=tbody.insertRow();
-  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td><td>₱${total}</td>`;
-  document.getElementById("grandTotal").innerText=`₱${total}`;
-  updateReceiptHeader();
-}
+  const validUsername = 'JKMPRIME';
+  const validPassword = 'JKMPRIME@2026';
 
-// Undo Item
-function undoItem(){
-  if(!undoStack.length) return;
-  let last=undoStack.pop();
-  document.querySelector("#previewTable tbody").deleteRow(-1);
-  total-=last.amount;
-  count--;
-  document.getElementById("grandTotal").innerText=`₱${total}`;
-}
-
-// Update Receipt Header
-function updateReceiptHeader(){
-  document.getElementById("rNamePrint").innerText=document.getElementById("custName").value||"-";
-  document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value||"-";
-  document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString();
-  document.getElementById("rNoPrint").innerText="JKM"+Math.floor(Math.random()*90000+10000);
-  const paymentMethod=document.getElementById("paymentMethod").value;
-  const paymentType=document.getElementById("paymentType").value;
-  document.getElementById("rPaymentPrint").innerText=paymentMethod;
-  if(paymentType==="Downpayment"){
-    const dp=Number(document.getElementById("downpaymentAmount").value)||0;
-    const remaining=total-dp;
-    document.getElementById("rPaymentTypePrint").innerText=`Downpayment: ₱${dp} | Remaining: ₱${remaining}`;
-  } else document.getElementById("rPaymentTypePrint").innerText="Full Payment";
-}
-function saveReceiptToFirebase(receipt){
-  const ref = db.ref('receipts');
-  const newRef = ref.push();
-  newRef.set(receipt);
-}
-
-function deleteReceiptFromFirebase(rno){
-  const ref = db.ref('receipts');
-  ref.orderByChild('rno').equalTo(rno).once('value', snapshot=>{
-    snapshot.forEach(child=>{
-      child.ref.remove();
-    });
-  });
-}
-
-function fetchReceiptsFromFirebase(){
-  const ref = db.ref('receipts');
-  ref.on('value', snapshot=>{
-    const data = snapshot.val() || {};
-    receiptHistory = Object.values(data);
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-    updateHistory();
-    updateDashboard();
-  });
-}
-// Save Receipt
-function saveReceipt() {
-  if(count===0){Swal.fire("Error","No items added","error");return;}
-
-  let profit = total * 0.45;
-  let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
-
-  // Prepare receipt object
-  const receipt = {
-    rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toLocaleDateString(),
-    shipTo: document.getElementById("custName").value || "-",
-    address: document.getElementById("custAddress").value || "-",
-    total: total,
-    profit: profit,
-    paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: paymentType,
-    downpayment: dpAmount,
-    items: undoStack.map(item => ({
-      name: item.itemName,
-      qty: item.qty,
-      price: item.price,
-      size: item.size || null
-    }))
-  };
-
-  // Save receipt to Firebase
-  saveReceiptToFirebase(receipt);
-
-  // --- SUBTRACT STOCK FROM INVENTORY ---
-  receipt.items.forEach(item => {
-    const itemRef = db.ref('inventory/' + item.name);
-    itemRef.once('value', snapshot => {
-      if(snapshot.exists()){
-        const currentStock = snapshot.val().stock || 0;
-        const newStock = currentStock - item.qty;
-        itemRef.update({ stock: newStock < 0 ? 0 : newStock });
-      }
-    });
-  });
-
-  Swal.fire("Saved","Receipt saved!","success");
-
-  // Reset receipt form
-  document.querySelector("#previewTable tbody").innerHTML="";
-  total=0; count=0; undoStack=[];
-  document.getElementById("custName").value="";
-  document.getElementById("custAddress").value="";
-  document.getElementById("grandTotal").innerText="₱0";
-  document.getElementById("downpaymentAmount").value="";
-  updateHistory(); updateDashboard();
-}
-
-// Toggle Dark Mode
-function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
-
-// Print Receipt
-function printReceipt(){window.print();}
-
-function updateHistory(filterFn){
-  const el=document.getElementById("receiptHistory"); el.innerHTML="";
-  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
-  data.forEach((r,i)=>{
-    el.innerHTML+=`<tr>
-      <td>${i+1}</td>
-      <td>${r.rno}</td>
-      <td>${r.date}</td>
-      <td>${r.shipTo}</td>
-      <td>₱${Math.round(r.total)}</td>
-      <td>₱${Math.round(r.profit)}</td>
-      <td>${r.paymentType}</td>
-      <td>
-        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
-      </td>
-    </tr>`;
-  });
-}
-
-// Edit Receipt (modern layout)
-function editReceipt(idx){
-  const r=receiptHistory[idx];
-  Swal.fire({
-    title:'Edit Receipt',
-    html:`<div class="modal-left">
-
-      <label style="text-align: left;">Customer Name</label><input id="swalName" value="${r.shipTo}">
-      <label style="text-align: left;">Address</label><input id="swalAddress" value="${r.address||''}">
-      <label style="text-align: left;">Payment Method</label><select id="swalPaymentMethod">
-        <option ${r.paymentMethod==="Cash"?"selected":""}>Cash</option>
-        <option ${r.paymentMethod==="GCash"?"selected":""}>GCash</option>
-        <option ${r.paymentMethod==="Bank Transfer"?"selected":""}>Bank Transfer</option>
-      </select>
-      <label style="text-align: left;">Payment Type</label><select id="swalPaymentType">
-        <option value="Full Payment" ${r.paymentType==="Full Payment"?"selected":""}>Full Payment</option>
-        <option value="Downpayment" ${r.paymentType==="Downpayment"?"selected":""}>Downpayment</option>
-      </select>
-      <label style="text-align: left;">Downpayment Amount</label><input id="swalDP" value="${r.downpayment||0}">
-    </div>`,
-    focusConfirm:false,
-    showCancelButton:true,
-    preConfirm:()=>( {
-      shipTo:document.getElementById("swalName").value,
-      address:document.getElementById("swalAddress").value,
-      paymentMethod:document.getElementById("swalPaymentMethod").value,
-      paymentType:document.getElementById("swalPaymentType").value,
-      downpayment:Number(document.getElementById("swalDP").value)||0
-    })
-  }).then(res=>{
-    if(res.isConfirmed){
-      receiptHistory[idx].shipTo=res.value.shipTo;
-      receiptHistory[idx].address=res.value.address;
-      receiptHistory[idx].paymentMethod=res.value.paymentMethod;
-      receiptHistory[idx].paymentType=res.value.paymentType;
-      receiptHistory[idx].downpayment=res.value.downpayment;
-      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
-      updateHistory(); updateDashboard();
-      Swal.fire("Updated","Receipt updated","success");
-    }
-  });
-}
-
-// Delete Receipt
-function deleteReceipt(idx){
-  Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
-    if(res.isConfirmed){
-      const rno = receiptHistory[idx].rno;
-      deleteReceiptFromFirebase(rno); // remove from Firebase
-      receiptHistory.splice(idx,1);
-      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
-      updateHistory(); updateDashboard();
-      Swal.fire("Deleted","Receipt removed","success");
-    }
-  });
-}
-
-function exportToExcel() {
-  if (!receiptHistory || receiptHistory.length === 0) {
-    Swal.fire("Error", "No receipts to export", "error");
-    return;
-  }
-
-  try {
-    // Prepare data
-    const exportData = receiptHistory.map((r, i) => ({
-      No: i + 1,
-      Receipt: r.rno,
-      Date: r.date,
-      Customer: r.shipTo,
-      Sales: Number(r.total) || 0,
-      Profit: Number(r.profit) || 0,
-      PaymentType: r.paymentType || "-"
-    }));
-
-    // Convert to Excel
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Receipts");
-    XLSX.writeFile(wb, "receipt_history.xlsx");
-
-    Swal.fire("Success", "Exported to Excel!", "success");
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Failed to export. Check console.", "error");
+  if(username === validUsername && password === validPassword){
+    localStorage.setItem('isLoggedIn', 'true');
+    // Direct redirect without SweetAlert
+    window.location.href = 'index.html';
+  } else {
+    alert('Invalid username or password'); // simple alert on fail
   }
 }
 
-// Export to PDF
-function exportToPDF() {
-  if (!receiptHistory || receiptHistory.length === 0) {
-    Swal.fire("Error", "No receipts to export", "error");
-    return;
-  }
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(16);
-    doc.text("Receipt History", 105, 10, { align: "center" });
-
-    doc.setFontSize(12);
-
-    // Table headers
-    const headers = [["No", "Receipt", "Date", "Customer", "Sales", "Profit", "Payment Type"]];
-
-    // Table rows
-    const rows = receiptHistory.map((r, i) => [
-      i + 1,
-      r.rno,
-      r.date,
-      r.shipTo,
-      "PHP " + Number(r.total || 0).toLocaleString(),
-      "PHP " + Number(Math.round(r.profit || 0)).toLocaleString(),
-      r.paymentType || "-"
-    ]);
-
-    // AutoTable
-    if (doc.autoTable) {
-      doc.autoTable({
-        head: headers,
-        body: rows,
-        startY: 20,
-        theme: "grid",
-        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-        styles: { fontSize: 10 }
-      });
-    } else {
-      // fallback table
-      let y = 20;
-      doc.text("No | Receipt | Date | Customer | Sales | Profit | Payment Type", 10, y);
-      y += 6;
-
-      rows.forEach(r => {
-        doc.text(r.join(" | "), 10, y);
-        y += 6;
-      });
-    }
-
-    doc.save("receipt_history.pdf");
-
-    Swal.fire("Success", "Exported to PDF!", "success");
-
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Failed to export PDF. Check console.", "error");
+// Protect index.html
+if(window.location.pathname.includes('index.html')){
+  const loggedIn = localStorage.getItem('isLoggedIn');
+  if(loggedIn !== 'true'){
+    window.location.href = 'login.html';
   }
 }
-// Apply Filters
-function applyFilters(){
-  let from=document.getElementById("fromDate").value;
-  let to=document.getElementById("toDate").value;
-  let search=document.getElementById("searchInput").value.toLowerCase();
-  updateHistory(r=>{
-    let d=new Date(r.date); let validDate=true;
-    if(from) validDate=d>=new Date(from);
-    if(to) validDate=validDate&&d<=new Date(to);
-    let validSearch=!search||r.shipTo.toLowerCase().includes(search)||r.rno.toLowerCase().includes(search);
-    return validDate&&validSearch;
-  });
-}
-
-// Update Dashboard
-function updateDashboard(){
-  let today = new Date();
-  let todayStr = today.toLocaleDateString();
-  let dailySales = 0, dailyProfit = 0, monthlySales = 0, monthlyProfit = 0;
-  let currentMonth = today.getMonth() + 1;
-
-  receiptHistory.forEach(r => {
-    let rDate = new Date(r.date);
-    let rMonth = rDate.getMonth() + 1;
-    let rTotal = Number(r.total) || 0;
-    let rProfit = rTotal * 0.45; // your existing profit calculation
-    if(rMonth === currentMonth){
-      monthlySales += rTotal; 
-      monthlyProfit += rProfit;
-    }
- if(rDate.toLocaleDateString() === todayStr){
-  dailySales += rTotal; 
-  dailyProfit += rProfit;
-}
-  });
-
-  // Update dashboard totals
-  document.getElementById("dailySales").innerText = dailySales;
-  document.getElementById("dailyProfit").innerText = dailyProfit;
-  document.getElementById("monthlySales").innerText = monthlySales;
-  document.getElementById("monthlyProfit").innerText = monthlyProfit;
-
-  // 💰 Split monthly profit
-// 30% Profit Each
-const profitEach = Math.round(monthlyProfit * 0.3);
-document.getElementById("profitEach").innerText = profitEach;
-
-// Maintenance 10%
-const maintenanceShare = Math.round(monthlyProfit * 0.1);
-document.getElementById("maintenanceShare").innerText = maintenanceShare;
-
-  renderCharts();
-}
-
-// Render Charts (line & bar)
-let barChartInstance,lineChartInstance;
-function renderCharts(){
-  let barCtx=document.getElementById("salesBarChart").getContext("2d");
-  let lineCtx=document.getElementById("salesLineChart").getContext("2d");
-  let labels=[],data=[];
-  receiptHistory.forEach(r=>{labels.push(r.date); data.push(r.total);});
-  if(barChartInstance) barChartInstance.destroy();
-  if(lineChartInstance) lineChartInstance.destroy();
-  barChartInstance=new Chart(barCtx,{type:'bar',data:{labels:labels,datasets:[{label:'Sales',data:data,backgroundColor:'#2563eb'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
-  lineChartInstance=new Chart(lineCtx,{type:'line',data:{labels:labels,datasets:[{label:'Sales Trend',data:data,borderColor:'#22c55e',fill:false,tension:0.3}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
-}
-
-const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-document.getElementById("monthLabel").innerText = monthNames[today.getMonth()] + " " + today.getFullYear();
-
-// Monthly reset check
-let lastMonth = localStorage.getItem("lastMonth") || today.getMonth();
-if (lastMonth != today.getMonth()) {
-  Swal.fire("New Month!", "Dashboard has been reset for the new month.", "info");
-  localStorage.setItem("lastMonth", today.getMonth());
-}
-// Quotation
-function generateQuotation(){
-  let custName=document.getElementById("qCustName").value;
-  let item=document.getElementById("qItemSelect").value;
-  let qty=document.getElementById("qQty").value;
-  let unitPrice=document.getElementById("qUnitPrice").value;
-  if(!custName||!item||!qty||!unitPrice){Swal.fire("Error","Please fill all fields","error");return;}
-  let totalAmount=qty*unitPrice;
-  let today=new Date();
-  document.getElementById("qDatePrint").innerText=today.toLocaleDateString();
-  document.getElementById("qNamePrint").innerText=custName;
-  document.getElementById("quotationText").innerHTML=`<strong>Item:</strong> ${item}<br>
-  <strong>Quantity:</strong> ${qty} pcs<br>
-  <strong>Unit Price:</strong> ₱${parseFloat(unitPrice).toFixed(2)}<br>
-  <strong>Total Amount:</strong> ₱${parseFloat(totalAmount).toFixed(2)}<br><br>
-  Notes: <br>• Price includes customization.<br>• At least 50% downpayment required.<br>• Remaining balance upon delivery.<br><br> Sincerely, <br> JKM PRIME DIGITAL PRINTS`;
-}
-
-// Download Quotation PDF
-function downloadQuotationPDF(){
-  const { jsPDF } = window.jspdf;
-  let doc=new jsPDF();
-  doc.html(document.getElementById("quotationPreview"),{callback:function(pdf){pdf.save("quotation.pdf");},x:5,y:5,width:200});
-}
-
-// INITIAL LOAD
-updateHistory(); updateDashboard();
-function addQuotationItem() {
-  let item = document.getElementById("qItemSelect").value;
-  let qty = Number(document.getElementById("qQty").value);
-  let price = Number(document.getElementById("qUnitPrice").value);
-
-  if (!item || !qty || !price) {
-    Swal.fire("Error", "Please fill all fields", "error");
-    return;
-  }
-
-  let total = qty * price;
-
-  quotationItems.push({ item, qty, price, total });
-
-  renderQuotationPreview();
-
-  // Reset input fields
-  document.getElementById("qQty").value = 1;
-  document.getElementById("qUnitPrice").value = price;
-}
-function renderQuotationPreview() {
-  let html = '';
-  let grandTotal = 0;
-
-  quotationItems.forEach(i => {
-    grandTotal += Number(i.total);
-    html += `<strong>Item:</strong> ${i.item}<br>
-             <strong>Quantity:</strong> ${i.qty} pcs<br>
-             <strong>Unit Price:</strong> ₱${parseFloat(i.price).toFixed(2)}<br>
-             <strong>Total Amount:</strong> ₱${parseFloat(i.total).toFixed(2)}<br><br>`;
-  });
-
-  html += `Notes:<br>
-           • Price includes customization.<br>
-           • At least 50% downpayment required.<br>
-           • Remaining balance upon delivery.<br><br>
-           Sincerely,<br>
-           JKM PRIME DIGITAL PRINTS`;
-
-  document.getElementById("quotationText").innerHTML = html;
-}
-function downloadQuotationImage() {
-  const quotationEl = document.getElementById("quotationPreview");
-
-  // Use html2canvas
-  html2canvas(quotationEl, {
-    scale: 2, // higher resolution
-    useCORS: true,
-    scrollY: -window.scrollY
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png"); // PNG format
-    link.download = "quotation.png";
-    link.click();
-    Swal.fire("Success", "Quotation downloaded as image!", "success");
-  }).catch(err => {
-    console.error(err);
-    Swal.fire("Error", "Failed to download quotation as image", "error");
-  });
-}
-// ================= INVENTORY MANAGEMENT WITH GROUPS =================
-
-// inventory.js
-
-// Firebase reference
-const inventoryRef = firebase.database().ref("inventory");
-
-// Populate categories only when inventory tab is shown
-document.querySelector('a[href="#inventoryTab"]').addEventListener('shown.bs.tab', function () {
-    const catSelect = document.getElementById("invCategory");
-    if (catSelect.options.length > 1) return; // prevent double population
-
-    const inventoryGroups = {
-        "Sublimation": ["T-Shirt", "Mug", "Ref Magnets", "Totebag"],
-        "Photo Print": ["3R", "4R", "5R", "A4", "Polaroid"],
-        "Rush ID": ["Package 1","Package 2","Package 3","Package 4","Package 5"],
-        "Printing": ["Document Short", "Document A4", "Document Long"],
-        "Others": ["Desk Calendar","A4 Sintra Board","A3 Sintra Board"]
-    };
-
-    catSelect.innerHTML = '<option value="">Select Item</option>';
-
-    for (const [group, items] of Object.entries(inventoryGroups)) {
-        const optGroup = document.createElement("optgroup");
-        optGroup.label = group;
-        items.forEach(itemName => {
-            const option = document.createElement("option");
-            option.value = itemName;
-            option.textContent = itemName;
-            optGroup.appendChild(option);
-        });
-        catSelect.appendChild(optGroup);
-    }
-
-    updateInventoryTable(); // show existing items
-});
-
-// Add inventory item to Firebase
-function addInventoryItem() {
-    const name = document.getElementById("invCategory").value;
-    const stock = Number(document.getElementById("invStock").value);
-    const price = Number(document.getElementById("invUnitPrice").value);
-
-    if (!name || stock <= 0 || price <= 0) {
-        Swal.fire("Error", "Please fill all fields", "error");
-        return;
-    }
-
-    const newItemRef = inventoryRef.push();
-    newItemRef.set({ name, stock, price });
-
-    document.getElementById("invStock").value = "";
-    document.getElementById("invUnitPrice").value = "";
-    Swal.fire("Success", "Item added!", "success");
-}
-
-// Update inventory table
-function updateInventoryTable() {
-    const tbody = document.getElementById("inventoryBody");
-    tbody.innerHTML = "";
-    inventoryRef.once("value", snapshot => {
-        const data = snapshot.val() || {};
-        Object.entries(data).forEach(([id, item], i) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${i+1}</td>
-                <td>${item.name}</td>
-                <td>${item.stock}</td>
-                <td>₱${item.price}</td>
-                <td>
-                    <button class="btn btn-sm btn-blue" onclick="editInventory('${id}')">Edit</button>
-                    <button class="btn btn-sm btn-red" onclick="deleteInventory('${id}')">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    });
-}
-
-// Delete item
-function deleteInventory(id) {
-    Swal.fire({
-        title: "Delete?",
-        text: "Are you sure?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes"
-    }).then(res => {
-        if (res.isConfirmed) {
-            inventoryRef.child(id).remove();
-            Swal.fire("Deleted", "Item removed", "success");
-            updateInventoryTable();
-        }
-    });
-}
-
-// Edit item
-function editInventory(id) {
-    inventoryRef.child(id).once("value", snapshot => {
-        const item = snapshot.val();
-        Swal.fire({
-            title: "Edit Inventory",
-            html: `
-                <input id="swalName" class="swal2-input" value="${item.name}">
-                <input id="swalStock" type="number" class="swal2-input" value="${item.stock}">
-                <input id="swalPrice" type="number" class="swal2-input" value="${item.price}">
-            `,
-            preConfirm: () => ({
-                name: document.getElementById("swalName").value,
-                stock: Number(document.getElementById("swalStock").value),
-                price: Number(document.getElementById("swalPrice").value)
-            }),
-            showCancelButton: true
-        }).then(res => {
-            if (res.isConfirmed) {
-                inventoryRef.child(id).update(res.value);
-                Swal.fire("Updated", "Item updated", "success");
-                updateInventoryTable();
-            }
-        });
-    });
-}
-
-// Listen for changes in real-time
-inventoryRef.on("value", updateInventoryTable);
-
 </script>
+
 </body>
 </html>
