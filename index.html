@@ -624,27 +624,31 @@ function deleteReceiptFromFirebase(rno){
 
 function fetchReceiptsFromFirebase(){
   const ref = db.ref('receipts');
-  ref.on('value', snapshot=>{
+
+  ref.on('value', snapshot => {
     const data = snapshot.val() || {};
+
     receiptHistory = Object.values(data);
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+
     updateHistory();
     updateDashboard();
   });
 }
-// Save Receipt
 function saveReceipt() {
-  if(count===0){Swal.fire("Error","No items added","error");return;}
-  deductInventoryFromReceipt(receiptItems);
+  if (count === 0) {
+    Swal.fire("Error", "No items added", "error");
+    return;
+  }
 
   let profit = total * 0.45;
   let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
+  let dpAmount = paymentType === "Downpayment"
+    ? Number(document.getElementById("downpaymentAmount").value) || 0
+    : total;
 
-  // Prepare receipt object
   const receipt = {
     rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toLocaleDateString(),
+    date: new Date().toISOString(), // better for sorting
     shipTo: document.getElementById("custName").value || "-",
     address: document.getElementById("custAddress").value || "-",
     total: total,
@@ -655,11 +659,28 @@ function saveReceipt() {
     items: undoStack.map(item => ({
       name: item.itemName,
       qty: item.qty,
-      price: item.price,
-      size: item.size || null
+      price: item.price
     }))
   };
 
+  // ✅ SAVE TO FIREBASE
+  const ref = db.ref("receipts");
+  ref.push(receipt);
+
+  // ✅ UI UPDATE IMMEDIATELY
+  receiptHistory.push(receipt);
+  updateHistory();
+  updateDashboard();
+
+  Swal.fire("Saved", "Receipt saved!", "success");
+
+  // RESET UI
+  document.querySelector("#previewTable tbody").innerHTML = "";
+  total = 0;
+  count = 0;
+  undoStack = [];
+  document.getElementById("grandTotal").innerText = "₱0";
+}
   // Save receipt to Firebase
   saveReceiptToFirebase(receipt);
 
@@ -694,22 +715,25 @@ function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
 function printReceipt(){window.print();}
 
 function updateHistory(filterFn){
-  const el=document.getElementById("receiptHistory"); el.innerHTML="";
-  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
-  data.forEach((r,i)=>{
-    el.innerHTML+=`<tr>
-      <td>${i+1}</td>
-      <td>${r.rno}</td>
-      <td>${r.date}</td>
-      <td>${r.shipTo}</td>
-      <td>₱${Math.round(r.total)}</td>
-      <td>₱${Math.round(r.profit)}</td>
-      <td>${r.paymentType}</td>
-      <td>
-        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
-      </td>
-    </tr>`;
+  const el = document.getElementById("receiptHistory");
+  el.innerHTML = "";
+
+  let data = filterFn ? receiptHistory.filter(filterFn) : receiptHistory;
+
+  data.forEach((r, i) => {
+    el.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${r.rno}</td>
+        <td>${new Date(r.date).toLocaleDateString()}</td>
+        <td>${r.shipTo}</td>
+        <td>₱${Math.round(r.total)}</td>
+        <td>₱${Math.round(r.profit)}</td>
+        <td>${r.paymentType}</td>
+        <td>
+          <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+        </td>
+      </tr>`;
   });
 }
 
@@ -1026,7 +1050,7 @@ function downloadQuotationImage() {
     Swal.fire("Error", "Failed to download quotation as image", "error");
   });
 }
-function deductInventoryFromReceipt(items) {
+deductInventoryFromReceipt(undoStack);
   items.forEach(item => {
 
     let query = firebase.database().ref("inventory")
