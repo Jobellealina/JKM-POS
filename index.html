@@ -611,7 +611,16 @@ function updateReceiptHeader(){
 function saveReceiptToFirebase(receipt){
   const ref = db.ref('receipts');
   const newRef = ref.push();
-  newRef.set(receipt);
+
+  return newRef.set(receipt)
+    .then(() => {
+      console.log("✅ SAVED TO FIREBASE:", receipt.rno);
+      return true;
+    })
+    .catch(err => {
+      console.error("❌ FIREBASE SAVE ERROR:", err);
+      return false;
+    });
 }
 
 function deleteReceiptFromFirebase(rno){
@@ -641,13 +650,50 @@ function fetchReceiptsFromFirebase(){
   });
 }
 // Save Receipt
-function saveReceipt() {
-  if(count===0){Swal.fire("Error","No items added","error");return;}
-  deductInventoryFromReceipt(receiptItems);
+async function saveReceipt() {
+  if(count === 0){
+    Swal.fire("Error","No items added","error");
+    return;
+  }
 
   let profit = total * 0.45;
   let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
+  let dpAmount = paymentType === "Downpayment"
+    ? Number(document.getElementById("downpaymentAmount").value) || 0
+    : total;
+
+  const receipt = {
+    rno: document.getElementById("rNoPrint").innerText,
+    date: new Date().toLocaleDateString(),
+    shipTo: document.getElementById("custName").value || "-",
+    address: document.getElementById("custAddress").value || "-",
+    total: total,
+    profit: profit,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    paymentType: paymentType,
+    downpayment: dpAmount,
+    items: undoStack.map(item => ({
+      name: item.itemName,
+      qty: item.qty,
+      price: item.price,
+      size: item.size || null
+    }))
+  };
+
+  console.log("📦 Saving receipt:", receipt);
+
+  const success = await saveReceiptToFirebase(receipt);
+
+  if(success){
+    receiptHistory.push(receipt);
+    updateHistory();
+    updateDashboard();
+
+    Swal.fire("Saved", "Receipt saved successfully", "success");
+  } else {
+    Swal.fire("Error", "Failed to save receipt to Firebase", "error");
+  }
+}
 
   // Prepare receipt object
   const receipt = {
@@ -676,29 +722,6 @@ saveReceiptToFirebase(receipt);
 receiptHistory.push(receipt);
 updateHistory();
 updateDashboard();
-
-  // --- SUBTRACT STOCK FROM INVENTORY ---
-  receipt.items.forEach(item => {
-    const itemRef = db.ref('inventory/' + item.name);
-    itemRef.once('value', snapshot => {
-      if(snapshot.exists()){
-        const currentStock = snapshot.val().stock || 0;
-        const newStock = currentStock - item.qty;
-        itemRef.update({ stock: newStock < 0 ? 0 : newStock });
-      }
-    });
-  });
-
-  Swal.fire("Saved","Receipt saved!","success");
-
-  // Reset receipt form
-  document.querySelector("#previewTable tbody").innerHTML="";
-  total=0; count=0; undoStack=[];
-  document.getElementById("custName").value="";
-  document.getElementById("custAddress").value="";
-  document.getElementById("grandTotal").innerText="₱0";
-  document.getElementById("downpaymentAmount").value="";
-  updateHistory(); updateDashboard();
 }
 
 // Toggle Dark Mode
