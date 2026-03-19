@@ -581,6 +581,10 @@ function addItem(){
   row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td><td>₱${total}</td>`;
   document.getElementById("grandTotal").innerText=`₱${total}`;
   updateReceiptHeader();
+  if (!document.getElementById("rNoPrint").innerText) {
+  document.getElementById("rNoPrint").innerText =
+    "JKM" + Math.floor(Math.random() * 90000 + 10000);
+}
 }
 
 // Undo Item
@@ -640,37 +644,65 @@ function fetchReceiptsFromFirebase(){
     updateDashboard();
   });
 }
-// Save Receipt
 function saveReceipt() {
-  if(count===0){Swal.fire("Error","No items added","error");return;}
-  deductInventoryFromReceipt(receiptItems);
+  try {
+    if (count === 0) {
+      Swal.fire("Error", "No items added", "error");
+      return;
+    }
 
-  let profit = total * 0.45;
-  let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
+    // ensure header is updated before save
+    updateReceiptHeader();
 
-  // Prepare receipt object
-  const receipt = {
-    rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toLocaleDateString(),
-    shipTo: document.getElementById("custName").value || "-",
-    address: document.getElementById("custAddress").value || "-",
-    total: total,
-    profit: profit,
-    paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: paymentType,
-    downpayment: dpAmount,
-    items: undoStack.map(item => ({
+    let paymentType = document.getElementById("paymentType").value;
+    let dpAmount = paymentType === "Downpayment"
+      ? Number(document.getElementById("downpaymentAmount").value) || 0
+      : total;
+
+    let profit = total * 0.45;
+
+    // ✅ FIX: gamitin undoStack hindi receiptItems
+    let items = undoStack.map(item => ({
       name: item.itemName,
       qty: item.qty,
-      price: item.price,
-      size: item.size || null
-    }))
-  };
+      price: item.price
+    }));
 
-  // Save receipt to Firebase
-// Save receipt to Firebase
-saveReceiptToFirebase(receipt);
+    const receipt = {
+      rno: document.getElementById("rNoPrint").innerText,
+      date: new Date().toLocaleDateString(),
+      shipTo: document.getElementById("custName").value || "-",
+      address: document.getElementById("custAddress").value || "-",
+      total: total,
+      profit: profit,
+      paymentMethod: document.getElementById("paymentMethod").value,
+      paymentType: paymentType,
+      downpayment: dpAmount,
+      items: items
+    };
+
+    // ✅ SAVE TO FIREBASE
+    saveReceiptToFirebase(receipt);
+
+    // ✅ UPDATE LOCAL UI IMMEDIATELY (important para di delayed dashboard)
+    receiptHistory.push(receipt);
+    updateHistory();
+    updateDashboard();
+
+    // optional reset
+    count = 0;
+    total = 0;
+    undoStack = [];
+    document.querySelector("#previewTable tbody").innerHTML = "";
+    document.getElementById("grandTotal").innerText = "₱0";
+
+    Swal.fire("Success", "Receipt saved successfully!", "success");
+
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Error", "May error sa pag-save ng receipt", "error");
+  }
+}
 
 // ✅ ADD THIS (IMPORTANT FIX)
 receiptHistory.push(receipt);
