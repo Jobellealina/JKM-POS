@@ -612,7 +612,7 @@ function saveReceiptToFirebase(receipt){
   const ref = db.ref('receipts');
   const newRef = ref.push();
 
-  return newRef.set(receipt)
+  return newRef.set(receipt).then(() => true);
     .then(() => {
       console.log("✅ SAVED TO FIREBASE:", receipt.rno);
       return true;
@@ -678,13 +678,22 @@ function saveReceipt() {
 
   // Save receipt to Firebase
 // Save receipt to Firebase
-saveReceiptToFirebase(receipt);
+saveReceiptToFirebase(receipt)
+  .then((ok) => {
+    if (ok) {
+      Swal.fire("Success", "Receipt saved successfully!", "success");
 
-// ✅ ADD THIS (IMPORTANT FIX)
-receiptHistory.push(receipt);
-updateHistory();
-updateDashboard();
-}
+      // OPTIONAL: reset UI after save
+      count = 0;
+      total = 0;
+      undoStack = [];
+      document.querySelector("#previewTable tbody").innerHTML = "";
+      document.getElementById("grandTotal").innerText = "₱0";
+    }
+  })
+  .catch(() => {
+    Swal.fire("Error", "Failed to save receipt", "error");
+  });
 
 // Toggle Dark Mode
 function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
