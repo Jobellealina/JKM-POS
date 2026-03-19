@@ -347,19 +347,26 @@ body{
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
+
 <script>
 // Firebase config
 const firebaseConfig = {
     databaseURL:"https://jkm-printing-system-default-rtdb.firebaseio.com/"
 };
-firebase.initializeApp(firebaseConfig);
+
+// SAFE INIT (prevents duplicate reload issues)
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
 const db = firebase.database();
 
+// GLOBAL STATE
 let materials = [];
-let totalCost = 0;
 let srpMaterials = [];
-let srpTotal = 0;
+let totalCost = 0;
 
+// ELEMENTS
 const tbody = document.getElementById("tbody");
 const totalCostSpan = document.getElementById("totalCost");
 const profitSpan = document.getElementById("profit");
@@ -368,65 +375,79 @@ const srpTotalSpan = document.getElementById("srpTotal");
 const srpSuggestedSpan = document.getElementById("srpSuggested");
 const history = document.getElementById("history");
 
-// Navigation
+// NAV
 function goBack(){
-    window.location.replace("index.html");
+    window.location.href = "index.html";
 }
 
-// MATERIALS
+// ================= MATERIALS =================
 function render(){
     let html = "";
     let tc = 0;
+
     materials.forEach((m,i)=>{
         let totalQty = m.packs * m.qty;
         tc += m.price;
-        html += `<tr>
+
+        html += `
+        <tr>
             <td>${m.name}</td>
             <td>${m.packs}</td>
             <td>${m.qty}</td>
             <td>${totalQty}</td>
             <td>₱${m.price}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="delMaterial(${i})">Delete</button></td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="delMaterial(${i})">Delete</button>
+            </td>
         </tr>`;
     });
+
     tbody.innerHTML = html;
     totalCost = tc;
     totalCostSpan.innerText = tc;
+
     computeProfit();
 }
 
 function addMaterial(){
-    let m = {
-        name: document.getElementById("material").value.trim(),
-        packs: Number(document.getElementById("packs").value),
-        qty: Number(document.getElementById("qty").value),
-        price: Number(document.getElementById("price").value)
-    };
-    if(!m.name || !m.packs || !m.qty || !m.price) return;
-    materials.push(m);
+    const name = document.getElementById("material").value.trim();
+    const packs = Number(document.getElementById("packs").value);
+    const qty = Number(document.getElementById("qty").value);
+    const price = Number(document.getElementById("price").value);
+
+    if(!name || !packs || !qty || !price) return;
+
+    materials.push({name,packs,qty,price});
     render();
+
     document.getElementById("material").value="";
     document.getElementById("packs").value="";
     document.getElementById("qty").value="";
     document.getElementById("price").value="";
 }
 
-function delMaterial(i){ materials.splice(i,1); render(); }
-function computeProfit(){ 
-    let incomeVal = Number(document.getElementById("income").value) || 0; 
-    profitSpan.innerText = incomeVal - totalCost; 
+function delMaterial(i){
+    materials.splice(i,1);
+    render();
 }
 
-// SRP Computation
+// ================= PROFIT =================
+function computeProfit(){
+    const income = Number(document.getElementById("income").value) || 0;
+    profitSpan.innerText = income - totalCost;
+}
+
+// ================= SRP =================
 function addSRP(){
-    let m = {
-        name: document.getElementById("srpMaterial").value.trim(),
-        qty: Number(document.getElementById("srpQty").value),
-        price: Number(document.getElementById("srpPrice").value)
-    };
-    if(!m.name || !m.qty || !m.price) return;
-    srpMaterials.push(m);
+    const name = document.getElementById("srpMaterial").value.trim();
+    const qty = Number(document.getElementById("srpQty").value);
+    const price = Number(document.getElementById("srpPrice").value);
+
+    if(!name || !qty || !price) return;
+
+    srpMaterials.push({name,qty,price});
     renderSRP();
+
     document.getElementById("srpMaterial").value="";
     document.getElementById("srpQty").value="";
     document.getElementById("srpPrice").value="";
@@ -434,115 +455,164 @@ function addSRP(){
 
 function renderSRP(){
     let html = "";
-    let tc = 0;
+    let total = 0;
+
     srpMaterials.forEach((m,i)=>{
-        let total = m.qty * m.price;
-        tc += total;
-        html += `<tr>
+        const sub = m.qty * m.price;
+        total += sub;
+
+        html += `
+        <tr>
             <td>${m.name}</td>
             <td>${m.qty}</td>
             <td>₱${m.price}</td>
-            <td>₱${total}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="delSRP(${i})">Delete</button></td>
+            <td>₱${sub}</td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="delSRP(${i})">Delete</button>
+            </td>
         </tr>`;
     });
+
     srpBody.innerHTML = html;
-    srpTotal = tc;
-    srpTotalSpan.innerText = srpTotal;
-    srpSuggestedSpan.innerText = srpTotal * 3;
+    srpTotalSpan.innerText = total;
+    srpSuggestedSpan.innerText = total * 3;
 }
 
-function delSRP(i){ srpMaterials.splice(i,1); renderSRP(); }
+function delSRP(i){
+    srpMaterials.splice(i,1);
+    renderSRP();
+}
 
-// SAVE PROJECT
+// ================= SAVE PROJECT (FIXED) =================
 function saveProject(){
-    let name = document.getElementById("projectName").value.trim();
-    let incomeVal = Number(document.getElementById("income").value) || 0;
-    if(!name) return alert("Project name is required!");
-    let profit = incomeVal - totalCost;
-    let date = new Date().toLocaleString();
-    let data = { date, name, totalCost, incomeVal, profit, materials, srpMaterials, srpTotal, suggestedSRP: srpTotal*3 };
+    const name = document.getElementById("projectName").value.trim();
+    const income = Number(document.getElementById("income").value) || 0;
+
+    if(!name) {
+        alert("Project name required");
+        return;
+    }
+
+    const profit = income - totalCost;
+
+    const data = {
+        date: new Date().toLocaleString(),
+        name,
+        totalCost,
+        income,
+        profit,
+        materials: JSON.parse(JSON.stringify(materials)),
+        srpMaterials: JSON.parse(JSON.stringify(srpMaterials))
+    };
+
     db.ref("projects").push(data);
 
-    // Reset
     materials = [];
     srpMaterials = [];
+    totalCost = 0;
+
     render();
     renderSRP();
+
     document.getElementById("projectName").value="";
     document.getElementById("income").value="";
 }
 
-// Project History
+// ================= LOAD PROJECTS (FIXED - NO MOBILE CRASH) =================
+let listenerAttached = false;
+
 function loadProjects(){
+    if(listenerAttached) return;
+    listenerAttached = true;
+
     db.ref("projects").on("value",(snap)=>{
+
         let html = "";
-        snap.forEach((child)=>{
-            let d = child.val();
-            let key = child.key;
-            let materialsEncoded = encodeURIComponent(JSON.stringify(d.materials));
-            html += `<tr>
+
+        if(!snap.exists()){
+            history.innerHTML = "";
+            return;
+        }
+
+        snap.forEach(child=>{
+            const d = child.val();
+            const key = child.key;
+
+            html += `
+            <tr>
                 <td>${d.date}</td>
                 <td>${d.name}</td>
                 <td>₱${d.totalCost}</td>
-                <td>₱${d.incomeVal}</td>
+                <td>₱${d.income}</td>
                 <td>₱${d.profit}</td>
                 <td>
-                    <button class="btn btn-info btn-sm" onclick="viewProject('${materialsEncoded}')">View</button>
+                    <button class="btn btn-info btn-sm" onclick="viewProject('${key}')">View</button>
                     <button class="btn btn-warning btn-sm" onclick="editProject('${key}')">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="deleteProject('${key}')">Delete</button>
                 </td>
             </tr>`;
         });
+
         history.innerHTML = html;
+
+    }, (error)=>{
+        console.log("Firebase error:", error);
     });
 }
 
-function viewProject(materialsEncoded){
-    let materials = JSON.parse(decodeURIComponent(materialsEncoded));
-    let html = "";
-    materials.forEach(m=>{
-        html += `<tr>
-            <td>${m.name}</td>
-            <td>${m.packs}</td>
-            <td>${m.qty}</td>
-            <td>${m.packs*m.qty}</td>
-            <td>₱${m.price}</td>
-        </tr>`;
+// ================= VIEW =================
+function viewProject(key){
+    db.ref("projects/"+key).get().then(snap=>{
+        if(!snap.exists()) return;
+
+        const d = snap.val();
+        let html = "";
+
+        (d.materials || []).forEach(m=>{
+            html += `
+            <tr>
+                <td>${m.name}</td>
+                <td>${m.packs}</td>
+                <td>${m.qty}</td>
+                <td>${m.packs*m.qty}</td>
+                <td>₱${m.price}</td>
+            </tr>`;
+        });
+
+        document.getElementById("viewTable").innerHTML = html;
+        new bootstrap.Modal(document.getElementById("viewModal")).show();
     });
-    document.getElementById("viewTable").innerHTML = html;
-    new bootstrap.Modal(document.getElementById("viewModal")).show();
 }
 
+// ================= EDIT =================
 function editProject(key){
-    db.ref("projects/"+key).get().then(snapshot=>{
-        if(snapshot.exists()){
-            let data = snapshot.val();
-            document.getElementById("projectName").value = data.name;
-            document.getElementById("income").value = data.incomeVal;
-            materials = data.materials || [];
-            srpMaterials = data.srpMaterials || [];
-            render();
-            renderSRP();
-            db.ref("projects/"+key).remove();
-        }
+    db.ref("projects/"+key).get().then(snap=>{
+        if(!snap.exists()) return;
+
+        const d = snap.val();
+
+        document.getElementById("projectName").value = d.name;
+        document.getElementById("income").value = d.income;
+
+        materials = d.materials || [];
+        srpMaterials = d.srpMaterials || [];
+
+        render();
+        renderSRP();
+
+        db.ref("projects/"+key).remove();
     });
 }
 
+// ================= DELETE =================
 function deleteProject(key){
-    if(confirm("Are you sure you want to delete this project?")){
+    if(confirm("Delete this project?")){
         db.ref("projects/"+key).remove();
     }
 }
 
-// Load projects
+// INIT
 loadProjects();
-
-  // Check if user is logged in
-  if(localStorage.getItem('isLoggedIn') !== 'true') {
-    // If not logged in, redirect to login (index.html)
-    window.location.href = 'index.html';
-  }
 </script>
 
 </body>
