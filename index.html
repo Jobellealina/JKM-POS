@@ -650,50 +650,12 @@ function fetchReceiptsFromFirebase(){
   });
 }
 // Save Receipt
-async function saveReceipt() {
-  if(count === 0){
-    Swal.fire("Error","No items added","error");
-    return;
-  }
+function saveReceipt() {
+  if(count===0){Swal.fire("Error","No items added","error");return;}
 
   let profit = total * 0.45;
   let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType === "Downpayment"
-    ? Number(document.getElementById("downpaymentAmount").value) || 0
-    : total;
-
-  const receipt = {
-    rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toLocaleDateString(),
-    shipTo: document.getElementById("custName").value || "-",
-    address: document.getElementById("custAddress").value || "-",
-    total: total,
-    profit: profit,
-    paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: paymentType,
-    downpayment: dpAmount,
-    items: undoStack.map(item => ({
-      name: item.itemName,
-      qty: item.qty,
-      price: item.price,
-      size: item.size || null
-    }))
-  };
-
-  console.log("📦 Saving receipt:", receipt);
-
-  const success = await saveReceiptToFirebase(receipt);
-
-  if(success){
-    receiptHistory.push(receipt);
-    updateHistory();
-    updateDashboard();
-
-    Swal.fire("Saved", "Receipt saved successfully", "success");
-  } else {
-    Swal.fire("Error", "Failed to save receipt to Firebase", "error");
-  }
-}
+  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
 
   // Prepare receipt object
   const receipt = {
