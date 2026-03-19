@@ -552,12 +552,16 @@ populateItems();
 // Variables
 let count=0,total=0,undoStack=[];
 let receiptHistory=[]; // we will populate from Firebase
-fetchReceiptsFromFirebase();
+function fetchReceiptsFromFirebase() {
+  db.ref("receipts").on("value", snapshot => {
+    const data = snapshot.val() || {};
 
-// Item select change
-document.getElementById("item").addEventListener("change",function(){
-  document.getElementById("price").value=this.selectedOptions[0].dataset.price || 0;
-});
+    receiptHistory = Object.values(data);
+
+    updateHistory();
+    updateDashboard();
+  });
+}
 
 // Toggle downpayment input
 function toggleDownpayment(){
@@ -640,22 +644,16 @@ function saveReceipt() {
     return;
   }
 
-  let profit = total * 0.45;
-  let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType === "Downpayment"
-    ? Number(document.getElementById("downpaymentAmount").value) || 0
-    : total;
-
   const receipt = {
     rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toISOString(), // better for sorting
+    date: new Date().toISOString(),
     shipTo: document.getElementById("custName").value || "-",
     address: document.getElementById("custAddress").value || "-",
     total: total,
-    profit: profit,
+    profit: total * 0.45,
     paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: paymentType,
-    downpayment: dpAmount,
+    paymentType: document.getElementById("paymentType").value,
+    downpayment: Number(document.getElementById("downpaymentAmount").value) || 0,
     items: undoStack.map(item => ({
       name: item.itemName,
       qty: item.qty,
@@ -663,40 +661,28 @@ function saveReceipt() {
     }))
   };
 
-  // ✅ SAVE TO FIREBASE
-  const ref = db.ref("receipts");
-  ref.push(receipt);
+  // 🔥 SAVE TO FIREBASE
+  db.ref("receipts").push(receipt)
+    .then(() => {
+      // 🔥 UPDATE LOCAL HISTORY IMMEDIATELY
+      receiptHistory.unshift(receipt);
+      updateHistory();
+      updateDashboard();
 
-  // ✅ UI UPDATE IMMEDIATELY
-  receiptHistory.push(receipt);
-  updateHistory();
-  updateDashboard();
+      Swal.fire("Saved", "Receipt saved successfully!", "success");
 
-  Swal.fire("Saved", "Receipt saved!", "success");
-
-  // RESET UI
-  document.querySelector("#previewTable tbody").innerHTML = "";
-  total = 0;
-  count = 0;
-  undoStack = [];
-  document.getElementById("grandTotal").innerText = "₱0";
-}
-  // Save receipt to Firebase
-  saveReceiptToFirebase(receipt);
-
-  // --- SUBTRACT STOCK FROM INVENTORY ---
-  receipt.items.forEach(item => {
-    const itemRef = db.ref('inventory/' + item.name);
-    itemRef.once('value', snapshot => {
-      if(snapshot.exists()){
-        const currentStock = snapshot.val().stock || 0;
-        const newStock = currentStock - item.qty;
-        itemRef.update({ stock: newStock < 0 ? 0 : newStock });
-      }
+      // RESET UI
+      document.querySelector("#previewTable tbody").innerHTML = "";
+      total = 0;
+      count = 0;
+      undoStack = [];
+      document.getElementById("grandTotal").innerText = "₱0";
+    })
+    .catch(err => {
+      console.error(err);
+      Swal.fire("Error", "Failed to save receipt", "error");
     });
-  });
-
-  Swal.fire("Saved","Receipt saved!","success");
+}
 
   // Reset receipt form
   document.querySelector("#previewTable tbody").innerHTML="";
@@ -706,7 +692,7 @@ function saveReceipt() {
   document.getElementById("grandTotal").innerText="₱0";
   document.getElementById("downpaymentAmount").value="";
   updateHistory(); updateDashboard();
-}
+
 
 // Toggle Dark Mode
 function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
@@ -718,22 +704,22 @@ function updateHistory(filterFn){
   const el = document.getElementById("receiptHistory");
   el.innerHTML = "";
 
-  let data = filterFn ? receiptHistory.filter(filterFn) : receiptHistory;
+  let data = receiptHistory || [];
 
-  data.forEach((r, i) => {
+  if (filterFn) data = data.filter(filterFn);
+
+  data.reverse().forEach((r, i) => {
     el.innerHTML += `
       <tr>
         <td>${i + 1}</td>
         <td>${r.rno}</td>
         <td>${new Date(r.date).toLocaleDateString()}</td>
         <td>${r.shipTo}</td>
-        <td>₱${Math.round(r.total)}</td>
-        <td>₱${Math.round(r.profit)}</td>
+        <td>₱${r.total}</td>
+        <td>₱${r.profit}</td>
         <td>${r.paymentType}</td>
-        <td>
-          <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
-        </td>
-      </tr>`;
+      </tr>
+    `;
   });
 }
 
@@ -955,7 +941,12 @@ function renderCharts(){
 }
 
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-document.getElementById("monthLabel").innerText = monthNames[today.getMonth()] + " " + today.getFullYear();
+function updateMonthLabel(){
+  const today = new Date();
+  document.getElementById("monthLabel").innerText =
+    monthNames[today.getMonth()] + " " + today.getFullYear();
+}
+updateMonthLabel();
 
 // Monthly reset check
 let lastMonth = localStorage.getItem("lastMonth") || today.getMonth();
@@ -987,7 +978,13 @@ function downloadQuotationPDF(){
   let doc=new jsPDF();
   doc.html(document.getElementById("quotationPreview"),{callback:function(pdf){pdf.save("quotation.pdf");},x:5,y:5,width:200});
 }
+window.addEventListener("load", () => {
+  receiptHistory = [];
 
+  fetchReceiptsFromFirebase();
+  populateItems();
+  updateDashboard();
+});
 // INITIAL LOAD
 updateHistory(); updateDashboard();
 function addQuotationItem() {
