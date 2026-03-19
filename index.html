@@ -17,26 +17,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-body {
-  font-family:'Courier New', monospace;
-  background:#ffe4e6;
-  color:#111;
-  transition:.3s;
-  font-size:13px;
-  margin:0;
-}
-body.dark {
-  background: #0b1220;
-  color: white;
-  overflow-x: hidden;
-}
-input,
-select {
-  background: #ffffff;
-  color: #111;
-  border-color: #e5e7eb;
-}
-
+body { font-family:'Courier New', monospace; background:#eef2f7; color:#111; transition:.3s; font-size:13px; margin:0; }
+body.dark { background:#0f172a; color:white; overflow-x:hidden; }
 .sidebar { height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
 .sidebar a { color:white; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
 .sidebar a:hover { background:#1e40af; color:#fff; }
@@ -77,101 +59,6 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 .modal-left .modal-footer{display:flex; justify-content:flex-start; gap:10px; padding:5px;}
 .modal-left {padding:10px;}
 .modal-left h5 {margin-bottom:10px; font-size:16px; text-align:left;}
-/* =========================
-   MODERN POS UI UPGRADE
-========================= */
-
-/* smoother overall look */
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* CARD UPGRADE (soft floating look) */
-.card {
-  border: 1px solid #f1f1f1;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-/* HOVER LIFT EFFECT */
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.10);
-  transition: .2s ease;
-}
-
-/* DASHBOARD CARDS (more premium look) */
-.db-card {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  position: relative;
-  overflow: hidden;
-}
-
-/* subtle shine effect */
-.db-card::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255,255,255,0.15),
-    transparent
-  );
-  transform: rotate(25deg);
-  opacity: 0;
-  transition: 0.4s;
-}
-
-.db-card:hover::after {
-  opacity: 1;
-  animation: shine 1s ease;
-}
-
-@keyframes shine {
-  from { transform: translateX(-100%) rotate(25deg); }
-  to { transform: translateX(100%) rotate(25deg); }
-}
-
-/* INPUT UPGRADE */
-input, select {
-  border-radius: 8px;
-  padding: 6px 8px;
-  border: 1px solid #e5e7eb;
-  outline: none;
-}
-
-input:focus, select:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239,68,68,0.15);
-}
-
-/* BUTTON UPGRADE */
-.btn-professional {
-  border-radius: 8px;
-  letter-spacing: .3px;
-}
-
-/* TABLE CLEAN LOOK */
-.table-sm th,
-.table-sm td {
-  border-bottom: 1px solid #f1f1f1;
-}
-
-/* PRINT AREA UPGRADE */
-.print-area {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  border: 1px dashed #e5e7eb;
-}
-
-/* SIDEBAR CLEANER */
-.sidebar {
-  box-shadow: 4px 0 12px rgba(0,0,0,0.08);
-}
-
 </style>
 </head>
 <body>
@@ -185,11 +72,11 @@ input:focus, select:focus {
 <a class="nav-link" data-bs-toggle="tab" href="#receiptTab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#historyTab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a><br>
-<a href="inventory.html" class="nav-link">
+<a href="inventoryTab.html" class="nav-link">
   <i class="bi bi-box-seam fs-5"></i>
   Inventory
 </a><br>
-<a class="nav-link" href="#" onclick="openTracker(event)">
+<a class="nav-link" href="tracking.html">
   <i class="bi bi-kanban fs-5"></i>
   <span class="d-none d-md-inline">Tracker</span>
 </a>
@@ -635,7 +522,6 @@ function fetchReceiptsFromFirebase(){
 // Save Receipt
 function saveReceipt() {
   if(count===0){Swal.fire("Error","No items added","error");return;}
-  deductInventoryFromReceipt(receiptItems);
 
   let profit = total * 0.45;
   let paymentType = document.getElementById("paymentType").value;
@@ -1026,30 +912,132 @@ function downloadQuotationImage() {
     Swal.fire("Error", "Failed to download quotation as image", "error");
   });
 }
-function deductInventoryFromReceipt(items) {
-  items.forEach(item => {
+// ================= INVENTORY MANAGEMENT WITH GROUPS =================
 
-    let query = firebase.database().ref("inventory")
-      .orderByChild("name")
-      .equalTo(item.name);
+// inventory.js
 
-    query.once("value", snap => {
-      snap.forEach(child => {
-        let currentQty = child.val().qty;
+// Firebase reference
+const inventoryRef = firebase.database().ref("inventory");
 
-        firebase.database().ref("inventory/" + child.key).update({
-          qty: currentQty - item.qty
+// Populate categories only when inventory tab is shown
+document.querySelector('a[href="#inventoryTab"]').addEventListener('shown.bs.tab', function () {
+    const catSelect = document.getElementById("invCategory");
+    if (catSelect.options.length > 1) return; // prevent double population
+
+    const inventoryGroups = {
+        "Sublimation": ["T-Shirt", "Mug", "Ref Magnets", "Totebag"],
+        "Photo Print": ["3R", "4R", "5R", "A4", "Polaroid"],
+        "Rush ID": ["Package 1","Package 2","Package 3","Package 4","Package 5"],
+        "Printing": ["Document Short", "Document A4", "Document Long"],
+        "Others": ["Desk Calendar","A4 Sintra Board","A3 Sintra Board"]
+    };
+
+    catSelect.innerHTML = '<option value="">Select Item</option>';
+
+    for (const [group, items] of Object.entries(inventoryGroups)) {
+        const optGroup = document.createElement("optgroup");
+        optGroup.label = group;
+        items.forEach(itemName => {
+            const option = document.createElement("option");
+            option.value = itemName;
+            option.textContent = itemName;
+            optGroup.appendChild(option);
         });
+        catSelect.appendChild(optGroup);
+    }
 
-      });
+    updateInventoryTable(); // show existing items
+});
+
+// Add inventory item to Firebase
+function addInventoryItem() {
+    const name = document.getElementById("invCategory").value;
+    const stock = Number(document.getElementById("invStock").value);
+    const price = Number(document.getElementById("invUnitPrice").value);
+
+    if (!name || stock <= 0 || price <= 0) {
+        Swal.fire("Error", "Please fill all fields", "error");
+        return;
+    }
+
+    const newItemRef = inventoryRef.push();
+    newItemRef.set({ name, stock, price });
+
+    document.getElementById("invStock").value = "";
+    document.getElementById("invUnitPrice").value = "";
+    Swal.fire("Success", "Item added!", "success");
+}
+
+// Update inventory table
+function updateInventoryTable() {
+    const tbody = document.getElementById("inventoryBody");
+    tbody.innerHTML = "";
+    inventoryRef.once("value", snapshot => {
+        const data = snapshot.val() || {};
+        Object.entries(data).forEach(([id, item], i) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i+1}</td>
+                <td>${item.name}</td>
+                <td>${item.stock}</td>
+                <td>₱${item.price}</td>
+                <td>
+                    <button class="btn btn-sm btn-blue" onclick="editInventory('${id}')">Edit</button>
+                    <button class="btn btn-sm btn-red" onclick="deleteInventory('${id}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
     });
+}
 
-  });
+// Delete item
+function deleteInventory(id) {
+    Swal.fire({
+        title: "Delete?",
+        text: "Are you sure?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes"
+    }).then(res => {
+        if (res.isConfirmed) {
+            inventoryRef.child(id).remove();
+            Swal.fire("Deleted", "Item removed", "success");
+            updateInventoryTable();
+        }
+    });
 }
-function openTracker(e){
-  e.preventDefault();
-  window.location.href = "tracking.html";
+
+// Edit item
+function editInventory(id) {
+    inventoryRef.child(id).once("value", snapshot => {
+        const item = snapshot.val();
+        Swal.fire({
+            title: "Edit Inventory",
+            html: `
+                <input id="swalName" class="swal2-input" value="${item.name}">
+                <input id="swalStock" type="number" class="swal2-input" value="${item.stock}">
+                <input id="swalPrice" type="number" class="swal2-input" value="${item.price}">
+            `,
+            preConfirm: () => ({
+                name: document.getElementById("swalName").value,
+                stock: Number(document.getElementById("swalStock").value),
+                price: Number(document.getElementById("swalPrice").value)
+            }),
+            showCancelButton: true
+        }).then(res => {
+            if (res.isConfirmed) {
+                inventoryRef.child(id).update(res.value);
+                Swal.fire("Updated", "Item updated", "success");
+                updateInventoryTable();
+            }
+        });
+    });
 }
+
+// Listen for changes in real-time
+inventoryRef.on("value", updateInventoryTable);
+
 </script>
 </body>
 </html>
