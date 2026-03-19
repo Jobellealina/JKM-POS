@@ -401,19 +401,22 @@ Quotation for Order
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script src="inventory.js"></script>
 
 <script>
 //=================== FULL JS UPDATED ===================
 let quotationItems = [];
 // Firebase Config
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+  apiKey: "YOUR_REAL_API_KEY",
+  authDomain: "YOUR_REAL_AUTH_DOMAIN",
   databaseURL: "https://jkm-printing-system-default-rtdb.firebaseio.com/",
-  projectId: "your-project-id",
+  projectId: "jkm-printing-system"
 };
-firebase.initializeApp(firebaseConfig);
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
 const db = firebase.database();
 
 function fetchHistoryFromFirebase(){
@@ -627,22 +630,35 @@ function deleteReceiptFromFirebase(rno){
   });
 }
 
-function fetchReceiptsFromFirebase(){
-  const ref = db.ref('receipts');
+function fetchReceiptsFromFirebase() {
+  try {
+    const ref = db.ref('receipts');
 
-  ref.on('value', snapshot => {
-    const data = snapshot.val() || {};
+    ref.on('value', snapshot => {
+      const data = snapshot.val();
 
-    receiptHistory = Object.entries(data).map(([key, val]) => ({
-      firebaseKey: key,
-      ...val
-    }));
+      if (!data) {
+        receiptHistory = [];
+        updateHistory();
+        updateDashboard();
+        return;
+      }
 
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+      receiptHistory = Object.keys(data).map(key => ({
+        firebaseKey: key,
+        ...data[key]
+      }));
 
+      updateHistory();
+      updateDashboard();
+    });
+
+  } catch (err) {
+    console.error("Firebase error:", err);
+    receiptHistory = [];
     updateHistory();
     updateDashboard();
-  });
+  }
 }
 function saveReceipt() {
   try {
@@ -1085,6 +1101,10 @@ function deductInventoryFromReceipt(items) {
 
   });
 }
+window.addEventListener("DOMContentLoaded", () => {
+  populateCategories();
+  populateItems();
+});
 function openTracker(e){
   e.preventDefault();
   window.location.href = "tracking.html";
