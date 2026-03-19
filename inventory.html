@@ -17,7 +17,6 @@ body{
     background:#ffe4e6;
 }
 
-/* HEADER */
 .headerBox{
     background: linear-gradient(90deg, #071a3a, #0b2a5b);
     color:white;
@@ -28,28 +27,25 @@ body{
     align-items:center;
     gap:15px;
     flex-wrap:wrap;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
 }
 
-.headerBox img{
-    height:60px;
-}
-
-/* CARDS */
 .card{
     border:none;
     border-radius:18px;
     box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-/* TABLE */
 .table thead{
     background:#0d6efd;
     color:white;
 }
 
 .low{
-    background:#ffe5e5;
+    background:#ffd6d6 !important;
+}
+
+.critical{
+    background:#ffb3b3 !important;
 }
 
 </style>
@@ -61,7 +57,7 @@ body{
 
 <!-- HEADER -->
 <div class="headerBox">
-    <img src="logo.png" onerror="this.style.display='none'">
+    <img src="logo.png" style="height:60px" onerror="this.style.display='none'">
 
     <div>
         <h4 class="m-0">JKM PRIME DIGITAL PRINTS</h4>
@@ -83,7 +79,7 @@ Total Items
 
 <div class="col-md-4">
 <div class="card p-3 text-center">
-Low Stock
+Low Stock (≤2 packs)
 <h3 id="lowStock">0</h3>
 </div>
 </div>
@@ -171,7 +167,14 @@ Total Value
 <input type="hidden" id="editId">
 
 <input id="editName" class="form-control mb-2" placeholder="Name">
-<input id="editPacks" type="number" class="form-control mb-2" placeholder="Packs">
+
+<!-- PACKS CONTROL -->
+<div class="input-group mb-2">
+<button class="btn btn-danger" type="button" onclick="changePack(-1)">-</button>
+<input id="editPacks" type="number" class="form-control text-center" placeholder="Packs">
+<button class="btn btn-success" type="button" onclick="changePack(1)">+</button>
+</div>
+
 <input id="editQtyPerPack" type="number" class="form-control mb-2" placeholder="Qty per Pack">
 <input id="editPricePerPack" type="number" class="form-control mb-2" placeholder="Price per Pack">
 
@@ -256,10 +259,14 @@ function render(){
         count++;
         totalValue += value;
 
-        if(totalStock <= 10) low++;
+        if(packs <= 2) low++;
+
+        let rowClass = "";
+        if(packs <= 2) rowClass = "critical";
+        else if(packs <= 5) rowClass = "low";
 
         html += `
-        <tr class="${totalStock <= 10 ? 'low' : ''}">
+        <tr class="${rowClass}">
             <td>${p.name}</td>
             <td>${packs}</td>
             <td>${qtyPerPack}</td>
@@ -274,13 +281,12 @@ function render(){
     }
 
     document.getElementById("list").innerHTML = html;
-
     document.getElementById("totalProducts").innerText = count;
     document.getElementById("lowStock").innerText = low;
     document.getElementById("totalValue").innerText = "₱" + totalValue.toFixed(2);
 }
 
-/* EDIT */
+/* OPEN EDIT */
 function openEdit(id){
 
     let p = dataCache[id];
@@ -292,6 +298,19 @@ function openEdit(id){
     document.getElementById("editPricePerPack").value = p.pricePerPack;
 
     new bootstrap.Modal(document.getElementById("editModal")).show();
+}
+
+/* CHANGE PACKS (+/- inside modal) */
+function changePack(val){
+
+    let input = document.getElementById("editPacks");
+    let current = Number(input.value) || 0;
+
+    current += val;
+
+    if(current < 0) current = 0;
+
+    input.value = current;
 }
 
 /* UPDATE */
