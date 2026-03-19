@@ -12,13 +12,13 @@
 <style>
 body{
     font-family: monospace;
-    background:#f4f7fa;
+    background:#ffe4e6;
     margin:0;
 }
 
 /* HEADER */
 .headerBox{
-    background: linear-gradient(90deg, #0d47a1, #1976d2);
+    background: linear-gradient(90deg, #071a3a, #0b2a5b);
     color:white;
     border-radius:18px;
     padding:20px;
@@ -181,13 +181,18 @@ body{
 
 <div class="container py-3">
 
+<div class="container py-3">
+
+<!-- HEADER -->
 <div class="headerBox">
-    <img src="logo1.png" onerror="this.style.display='none'">
+    <img src="logo.png" onerror="this.style.display='none'">
+
     <div>
-        <div class="companyTitle">JKM PRIME DIGITAL PRINTS</div>
-        <div class="companySub">Printing Services</div>
+        <h4 class="m-0">JKM PRIME DIGITAL PRINTS</h4>
+        <small>Project Tracker</small>
     </div>
-    <button class="btn btn-light" onclick="goMain()">⬅ Main Dashboard</button>
+
+    <button class="btn btn-light ms-auto" onclick="goBack()">Dashboard</button>
 </div>
 
 <!-- Project Materials -->
@@ -364,7 +369,9 @@ const srpSuggestedSpan = document.getElementById("srpSuggested");
 const history = document.getElementById("history");
 
 // Navigation
-function goMain(){ window.location.href="index.html"; }
+function goBack(){
+    window.location.replace("index.html");
+}
 
 // MATERIALS
 function render(){

@@ -1,239 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
-<title>Print Express - Inventory & Materials</title>
-<link rel="icon" type="image/jpeg" href="logo.jpg">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="icon" href="logo.png">
+<title>JKM PRIME DIGITAL PRINTS - Inventory</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-:root{
-  --primary:#9bd6f3;
-}
-
-*{box-sizing:border-box;}
 
 body{
-  margin:0;
-  font-family:'Segoe UI',sans-serif;
-  background:#f5f5f5;
+    font-family: monospace;
+    background:#ffe4e6;
 }
 
-/* NAVBAR */
-.navbar{
-  background:#9bd6f3;
-  padding:12px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+/* HEADER */
+.headerBox{
+    background: linear-gradient(90deg, #071a3a, #0b2a5b);
+    color:white;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:25px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
 }
 
-.nav-left{
-  font-weight:700;
-  font-size:15px;
+.headerBox img{
+    height:60px;
 }
 
-.nav-right a{
-  margin-left:12px;
-  text-decoration:none;
-  color:#111;
-  font-size:13px;
-  font-weight:600;
-  padding:6px 12px;
-  border-radius:4px;
-  transition:0.2s;
-}
-
-.nav-right a:hover{
-  background:#7fc4e8;
-}
-
-/* CONTAINER */
-.container{
-  max-width:1000px;
-  margin:20px auto;
-  background:#fff;
-  padding:15px;
-  border-radius:8px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
-
-h2{margin-top:0;}
-
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr 1fr;
-  gap:8px;
-}
-
-label{font-size:11px;}
-
-input{
-  padding:6px;
-  border:1px solid var(--primary);
-  border-radius:4px;
-  font-size:11px;
-}
-
-button{
-  padding:6px;
-  border-radius:4px;
-  border:1px solid var(--primary);
-  font-size:11px;
-  cursor:pointer;
-  font-weight:700;
-  transition:0.2s;
-}
-
-button:hover{
-  background:#7fc4e8;
+/* CARDS */
+.card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
 /* TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:11px;
-  margin-top:10px;
+.table thead{
+    background:#0d6efd;
+    color:white;
 }
 
-th,td{
-  border:1px solid #ddd;
-  padding:6px;
+.low{
+    background:#ffe5e5;
 }
 
-.action-btn{
-  margin-right:4px;
-}
 </style>
 </head>
+
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-  <div class="nav-left">PRINT EXPRESS</div>
-  <div class="nav-right">
-    <a href="receipt.html">Sales</a>
-    <a href="inventory.html">Inventory</a>
-  </div>
+<div class="container py-3">
+
+<!-- HEADER -->
+<div class="headerBox">
+    <img src="logo.png" onerror="this.style.display='none'">
+
+    <div>
+        <h4 class="m-0">JKM PRIME DIGITAL PRINTS</h4>
+        <small>Inventory System</small>
+    </div>
+
+    <button class="btn btn-light ms-auto" onclick="goBack()">Dashboard</button>
 </div>
 
-<div class="container">
-<h2>Inventory & Material Tracker</h2>
+<!-- SUMMARY -->
+<div class="row g-3 mb-3">
 
-<div class="grid">
-  <div>
-    <label>Material Name</label>
-    <input type="text" id="matName">
-  </div>
-  <div>
-    <label>Stock</label>
-    <input type="number" id="matStock">
-  </div>
-  <div>
-    <label>Cost</label>
-    <input type="number" id="matCost">
-  </div>
-  <div>
-    <button onclick="addMaterial()">Add Material</button>
-  </div>
+<div class="col-md-4">
+<div class="card p-3 text-center">
+Total Items
+<h3 id="totalProducts">0</h3>
+</div>
 </div>
 
-<table>
+<div class="col-md-4">
+<div class="card p-3 text-center">
+Low Stock
+<h3 id="lowStock">0</h3>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card p-3 text-center">
+Total Value
+<h3 id="totalValue">₱0</h3>
+</div>
+</div>
+
+</div>
+
+<!-- ADD PRODUCT -->
+<div class="card p-3 mb-3">
+
+<div class="row g-2">
+
+<div class="col-md-3">
+<input id="name" class="form-control" placeholder="Product Name">
+</div>
+
+<div class="col-md-2">
+<input id="packs" type="number" class="form-control" placeholder="Packs">
+</div>
+
+<div class="col-md-2">
+<input id="qtyPerPack" type="number" class="form-control" placeholder="Qty/Pack">
+</div>
+
+<div class="col-md-3">
+<input id="pricePerPack" type="number" class="form-control" placeholder="Price/Pack">
+</div>
+
+<div class="col-md-2">
+<button class="btn btn-primary w-100" onclick="addItem()">ADD</button>
+</div>
+
+</div>
+
+</div>
+
+<!-- SEARCH -->
+<div class="card p-3 mb-3">
+<input id="search" class="form-control" placeholder="Search product..." oninput="render()">
+</div>
+
+<!-- TABLE -->
+<div class="card p-3 table-responsive">
+
+<table class="table text-center align-middle">
+
 <thead>
 <tr>
-<th>No</th><th>Name</th><th>Stock</th><th>Cost</th><th>Total</th><th>Actions</th>
+<th>Product</th>
+<th>Packs</th>
+<th>Qty/Pack</th>
+<th>Total Stock</th>
+<th>Price/Pack</th>
+<th>Total Value</th>
+<th>Actions</th>
 </tr>
 </thead>
-<tbody id="inventoryBody"></tbody>
+
+<tbody id="list"></tbody>
+
 </table>
 
 </div>
 
-<script>
-let inventory = JSON.parse(localStorage.getItem("inventory")||"[]");
+</div>
 
-function render(){
- const el=document.getElementById('inventoryBody');
- el.innerHTML='';
- inventory.forEach((m,i)=>{
-   const total = m.stock * m.cost;
-   el.innerHTML += `
-     <tr>
-       <td>${i+1}</td>
-       <td>${m.name}</td>
-       <td>${m.stock}</td>
-       <td>₱${m.cost.toFixed(2)}</td>
-       <td>₱${total.toFixed(2)}</td>
-       <td>
-         <button class="action-btn" onclick="editMat(${i})">Edit</button>
-         <button class="action-btn" onclick="deleteMat(${i})">Delete</button>
-       </td>
-     </tr>
-   `;
- });
+<!-- EDIT MODAL -->
+<div class="modal fade" id="editModal">
+<div class="modal-dialog">
+<div class="modal-content">
+
+<div class="modal-header">
+<h5>Edit Product</h5>
+<button class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+<input type="hidden" id="editId">
+
+<input id="editName" class="form-control mb-2" placeholder="Name">
+<input id="editPacks" type="number" class="form-control mb-2" placeholder="Packs">
+<input id="editQtyPerPack" type="number" class="form-control mb-2" placeholder="Qty per Pack">
+<input id="editPricePerPack" type="number" class="form-control mb-2" placeholder="Price per Pack">
+
+</div>
+
+<div class="modal-footer">
+<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+<button class="btn btn-primary" onclick="updateItem()">Save</button>
+</div>
+
+</div>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+const firebaseConfig = {
+  databaseURL:"https://jkm-printing-system-default-rtdb.firebaseio.com/"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref("inventory");
+
+let dataCache = {};
+
+/* BACK */
+function goBack(){
+    window.location.href="index.html";
 }
 
 /* ADD */
-function addMaterial(){
- const name=document.getElementById('matName').value;
- const stock=Number(document.getElementById('matStock').value);
- const cost=Number(document.getElementById('matCost').value);
+function addItem(){
 
- if(!name||!stock||!cost)
-  return Swal.fire('Oops','Fill all fields','warning');
+    let name = document.getElementById("name").value;
+    let packs = Number(document.getElementById("packs").value);
+    let qtyPerPack = Number(document.getElementById("qtyPerPack").value);
+    let pricePerPack = Number(document.getElementById("pricePerPack").value);
 
- inventory.push({name,stock,cost});
- localStorage.setItem("inventory",JSON.stringify(inventory));
+    if(!name || isNaN(packs) || isNaN(qtyPerPack) || isNaN(pricePerPack)) return;
 
- document.getElementById('matName').value='';
- document.getElementById('matStock').value='';
- document.getElementById('matCost').value='';
+    db.push({ name, packs, qtyPerPack, pricePerPack });
 
- Swal.fire('Success','Material added','success');
- render();
+    document.getElementById("name").value="";
+    document.getElementById("packs").value="";
+    document.getElementById("qtyPerPack").value="";
+    document.getElementById("pricePerPack").value="";
+}
+
+/* LOAD */
+db.on("value", snap=>{
+    dataCache = snap.val() || {};
+    render();
+});
+
+/* RENDER */
+function render(){
+
+    let search = document.getElementById("search").value.toLowerCase();
+
+    let html = "";
+    let totalValue = 0;
+    let low = 0;
+    let count = 0;
+
+    for(let id in dataCache){
+
+        let p = dataCache[id];
+
+        let packs = Number(p.packs) || 0;
+        let qtyPerPack = Number(p.qtyPerPack) || 0;
+        let pricePerPack = Number(p.pricePerPack) || 0;
+
+        let totalStock = packs * qtyPerPack;
+        let value = packs * pricePerPack;
+
+        if(search && !p.name.toLowerCase().includes(search)) continue;
+
+        count++;
+        totalValue += value;
+
+        if(totalStock <= 10) low++;
+
+        html += `
+        <tr class="${totalStock <= 10 ? 'low' : ''}">
+            <td>${p.name}</td>
+            <td>${packs}</td>
+            <td>${qtyPerPack}</td>
+            <td>${totalStock}</td>
+            <td>${pricePerPack}</td>
+            <td>₱${value.toFixed(2)}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="openEdit('${id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="del('${id}')">Delete</button>
+            </td>
+        </tr>`;
+    }
+
+    document.getElementById("list").innerHTML = html;
+
+    document.getElementById("totalProducts").innerText = count;
+    document.getElementById("lowStock").innerText = low;
+    document.getElementById("totalValue").innerText = "₱" + totalValue.toFixed(2);
 }
 
 /* EDIT */
-function editMat(i){
- const m = inventory[i];
- Swal.fire({
-   title:'Edit Material',
-   html:
-     `<input id="swal-name" class="swal2-input" value="${m.name}">
-      <input id="swal-stock" type="number" class="swal2-input" value="${m.stock}">
-      <input id="swal-cost" type="number" class="swal2-input" value="${m.cost}">`,
-   showCancelButton:true
- }).then(res=>{
-   if(res.isConfirmed){
-     inventory[i] = {
-       name:document.getElementById('swal-name').value,
-       stock:Number(document.getElementById('swal-stock').value),
-       cost:Number(document.getElementById('swal-cost').value)
-     };
-     localStorage.setItem("inventory",JSON.stringify(inventory));
-     Swal.fire('Updated','Material updated','success');
-     render();
-   }
- });
+function openEdit(id){
+
+    let p = dataCache[id];
+
+    document.getElementById("editId").value = id;
+    document.getElementById("editName").value = p.name;
+    document.getElementById("editPacks").value = p.packs;
+    document.getElementById("editQtyPerPack").value = p.qtyPerPack;
+    document.getElementById("editPricePerPack").value = p.pricePerPack;
+
+    new bootstrap.Modal(document.getElementById("editModal")).show();
+}
+
+/* UPDATE */
+function updateItem(){
+
+    let id = document.getElementById("editId").value;
+
+    let name = document.getElementById("editName").value;
+    let packs = Number(document.getElementById("editPacks").value);
+    let qtyPerPack = Number(document.getElementById("editQtyPerPack").value);
+    let pricePerPack = Number(document.getElementById("editPricePerPack").value);
+
+    if(!name || isNaN(packs) || isNaN(qtyPerPack) || isNaN(pricePerPack)) return;
+
+    db.child(id).update({
+        name,
+        packs,
+        qtyPerPack,
+        pricePerPack
+    });
+
+    bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
 }
 
 /* DELETE */
-function deleteMat(i){
- Swal.fire({title:'Delete?',showCancelButton:true}).then(res=>{
-   if(res.isConfirmed){
-     inventory.splice(i,1);
-     localStorage.setItem("inventory",JSON.stringify(inventory));
-     Swal.fire('Deleted','Material removed','success');
-     render();
-   }
- });
+function del(id){
+    db.child(id).remove();
 }
 
-window.onload=()=>render();
 </script>
 
 </body>
