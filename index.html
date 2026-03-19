@@ -553,13 +553,20 @@ populateItems();
 let count=0,total=0,undoStack=[];
 let receiptHistory=[]; // we will populate from Firebase
 function fetchReceiptsFromFirebase() {
-  db.ref("receipts").on("value", snapshot => {
-    const data = snapshot.val() || {};
+  if (!db) {
+    console.error("DB not initialized");
+    return;
+  }
 
-    receiptHistory = Object.values(data);
+  db.ref("receipts").on("value", snapshot => {
+    const data = snapshot.val();
+
+    receiptHistory = data ? Object.values(data) : [];
 
     updateHistory();
     updateDashboard();
+  }, err => {
+    console.error("Firebase read error:", err);
   });
 }
 
@@ -639,28 +646,62 @@ function fetchReceiptsFromFirebase(){
   });
 }
 function saveReceipt() {
-  if (count === 0) {
-    Swal.fire("Error", "No items added", "error");
-    return;
+  try {
+    if (!db) {
+      Swal.fire("Error", "Firebase not initialized", "error");
+      return;
+    }
+
+    if (!undoStack || undoStack.length === 0) {
+      Swal.fire("Error", "No items added", "error");
+      return;
+    }
+
+    const receipt = {
+      rno: document.getElementById("rNoPrint").innerText,
+      date: new Date().toISOString(),
+      shipTo: document.getElementById("custName").value || "-",
+      address: document.getElementById("custAddress").value || "-",
+      total: Number(total) || 0,
+      profit: (Number(total) || 0) * 0.45,
+      paymentMethod: document.getElementById("paymentMethod").value,
+      paymentType: document.getElementById("paymentType").value,
+      downpayment: Number(document.getElementById("downpaymentAmount").value) || 0,
+      items: undoStack.map(i => ({
+        name: i.itemName,
+        qty: i.qty,
+        price: i.price
+      }))
+    };
+
+    db.ref("receipts").push(receipt)
+      .then(() => {
+        if (!receiptHistory) receiptHistory = [];
+
+        receiptHistory.unshift(receipt);
+
+        updateHistory();
+        updateDashboard();
+
+        Swal.fire("Success", "Receipt saved!", "success");
+
+        // reset
+        document.querySelector("#previewTable tbody").innerHTML = "";
+        total = 0;
+        count = 0;
+        undoStack = [];
+        document.getElementById("grandTotal").innerText = "₱0";
+      })
+      .catch(err => {
+        console.error("Firebase error:", err);
+        Swal.fire("Error", "Failed to save receipt", "error");
+      });
+
+  } catch (err) {
+    console.error("JS error:", err);
+    Swal.fire("Error", "Something broke in saveReceipt()", "error");
   }
-
-  const receipt = {
-    rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toISOString(),
-    shipTo: document.getElementById("custName").value || "-",
-    address: document.getElementById("custAddress").value || "-",
-    total: total,
-    profit: total * 0.45,
-    paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: document.getElementById("paymentType").value,
-    downpayment: Number(document.getElementById("downpaymentAmount").value) || 0,
-    items: undoStack.map(item => ({
-      name: item.itemName,
-      qty: item.qty,
-      price: item.price
-    }))
-  };
-
+}
   // 🔥 SAVE TO FIREBASE
   db.ref("receipts").push(receipt)
     .then(() => {
