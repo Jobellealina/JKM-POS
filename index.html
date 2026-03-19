@@ -189,7 +189,7 @@ input:focus, select:focus {
   <i class="bi bi-box-seam fs-5"></i>
   Inventory
 </a><br>
-<a class="nav-link" href="tracking.html">
+<a class="nav-link" href="#" onclick="openTracker(event)">
   <i class="bi bi-kanban fs-5"></i>
   <span class="d-none d-md-inline">Tracker</span>
 </a>
@@ -1046,7 +1046,10 @@ function deductInventoryFromReceipt(items) {
 
   });
 }
-
+function openTracker(e){
+  e.preventDefault();
+  window.location.href = "tracking.html";
+}
 </script>
 </body>
 </html>
