@@ -438,15 +438,19 @@ function fetchHistoryFromFirebase(){
 fetchHistoryFromFirebase();
 
 //=================== FETCH RECEIPTS ===================
-function fetchReceiptsFromFirebase(){
-  const ref = db.ref('receipts');
+ffunction fetchReceiptsFromFirebase(){
 
-  ref.on('value', snapshot => {
+  const ref = db.ref("receipts");
+
+  ref.on("value", snapshot => {
+
+    console.log("FIREBASE RAW:", snapshot.val());
+
     const data = snapshot.val() || {};
 
-    receiptHistory = Object.entries(data).map(([key, val]) => ({
+    receiptHistory = Object.keys(data).map(key => ({
       firebaseKey: key,
-      ...val
+      ...data[key]
     }));
 
     updateHistory();
@@ -607,41 +611,34 @@ async function saveReceipt(){
     return;
   }
 
-  let profit = total * 0.45;
-
-  let paymentType = document.getElementById("paymentType").value;
-
-  let dpAmount =
-    paymentType === "Downpayment"
-      ? Number(document.getElementById("downpaymentAmount").value) || 0
-      : total;
-
   const receipt = {
     rno: document.getElementById("rNoPrint").innerText,
     date: new Date().toLocaleDateString(),
     shipTo: document.getElementById("custName").value || "-",
     address: document.getElementById("custAddress").value || "-",
-    total: total,
-    profit: profit,
+    total,
+    profit: total * 0.45,
     paymentMethod: document.getElementById("paymentMethod").value,
-    paymentType: paymentType,
-    downpayment: dpAmount,
-    items: undoStack.map(item => ({
-      name: item.itemName,
-      qty: item.qty,
-      price: item.price
-    }))
+    paymentType: document.getElementById("paymentType").value,
+    downpayment: 0,
+    items: undoStack
   };
 
-  try{
+  try {
 
-    await saveReceiptToFirebase(receipt);
+    const ref = db.ref("receipts").push();
 
-    Swal.fire("Success","Receipt saved successfully","success");
+    await ref.set(receipt);
 
-  }catch(err){
-    console.error(err);
-    Swal.fire("Error","Failed to save receipt","error");
+    console.log("SAVED SUCCESS:", receipt);
+
+    Swal.fire("Success", "Receipt saved!", "success");
+
+  } catch (err) {
+
+    console.error("SAVE ERROR:", err);
+
+    Swal.fire("Error", "Firebase save failed", "error");
   }
 }
 
