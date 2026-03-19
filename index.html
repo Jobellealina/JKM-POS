@@ -1050,7 +1050,7 @@ function downloadQuotationImage() {
     Swal.fire("Error", "Failed to download quotation as image", "error");
   });
 }
-deductInventoryFromReceipt(undoStack);
+deductInventoryFromReceipt(undoStack); {
   items.forEach(item => {
 
     let query = firebase.database().ref("inventory")
