@@ -160,6 +160,9 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
 <button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
 <button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
+<button class="btn btn-blue btn-professional" onclick="downloadReceiptImage()">
+  Image
+</button>
 </div>
 </div>
 </div>
@@ -1037,7 +1040,25 @@ function editInventory(id) {
 
 // Listen for changes in real-time
 inventoryRef.on("value", updateInventoryTable);
+function downloadReceiptImage() {
+  const receiptEl = document.getElementById("receiptPreview");
 
+  html2canvas(receiptEl, {
+    scale: 2,
+    useCORS: true,
+    scrollY: -window.scrollY
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "receipt.png";
+    link.click();
+
+    Swal.fire("Success", "Receipt downloaded as image!", "success");
+  }).catch(err => {
+    console.error(err);
+    Swal.fire("Error", "Failed to download receipt image", "error");
+  });
+}
 </script>
 </body>
 </html>
