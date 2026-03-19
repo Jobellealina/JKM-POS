@@ -62,6 +62,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 </style>
 </head>
 <body>
+  
 
 <div class="sidebar">
 <img src="logo1.png" class="mb-3 mx-auto" style="border-radius:10px; height:50px; width:50px;">
@@ -71,6 +72,10 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <a class="nav-link" data-bs-toggle="tab" href="#receiptTab"><i class="bi bi-receipt fs-5"></i><span class="d-none d-md-inline">Add Receipt</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#historyTab"><i class="bi bi-clock-history fs-5"></i><span class="d-none d-md-inline">History</span></a><br>
 <a class="nav-link" data-bs-toggle="tab" href="#quotationTab"><i class="bi bi-file-earmark-text fs-5"></i><span class="d-none d-md-inline">Quotation</span></a><br>
+<a href="inventoryTab.html" class="nav-link">
+  <i class="bi bi-box-seam fs-5"></i>
+  Inventory
+</a><br>
 <a class="nav-link" href="tracking.html">
   <i class="bi bi-kanban fs-5"></i>
   <span class="d-none d-md-inline">Tracker</span>
@@ -133,7 +138,10 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <div class="card p-3 mb-3">
 <h5>Add Service</h5>
 <div class="row g-2 mb-2">
-<div class="col-md-5"><select id="item" class="form-select"></select></div>
+<div class="col-md-5">
+  <select id="category" class="form-select"></select>
+  <select id="item" class="form-select"></select>
+</div>
 <div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
 <div class="col-md-3"><input type="number" id="price" class="form-control"></div>
 <div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
@@ -222,7 +230,24 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 </div>
 </div>
 </div>
-
+<!-- Tab content -->
+<div class="tab-pane fade" id="inventoryTab">
+  <div class="card p-3">
+    <h5>Inventory Management</h5>
+    <select id="invCategory" class="form-select mb-1">
+      <option value="">Select Item</option>
+    </select>
+    <input type="number" id="invStock" placeholder="Stock" class="form-control mb-1">
+    <input type="number" id="invUnitPrice" placeholder="Unit Price" class="form-control mb-1">
+    <button class="btn btn-green btn-professional" onclick="addInventoryItem()">Add Item</button>
+    <table class="table table-sm mt-2">
+      <thead>
+        <tr><th>No</th><th>Item Name</th><th>Stock</th><th>Unit Price</th><th>Action</th></tr>
+      </thead>
+      <tbody id="inventoryBody"></tbody>
+    </table>
+  </div>
+</div>
 <!-- Quotation Tab -->
 <div class="tab-pane fade" id="quotationTab">
 <div class="row">
@@ -234,8 +259,9 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
 <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
 <div class="mt-2 d-flex gap-1 flex-wrap">
+  <button class="btn btn-success btn-professional" onclick="addQuotationItem()">Add Item</button><br><br>
 <button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
-<button class="btn btn-green btn-professional" onclick="downloadQuotationPDF()">Download PDF</button>
+<button class="btn btn-danger btn-professional" onclick="downloadQuotationImage()">Download</button>
 </div>
 </div>
 </div>
@@ -260,12 +286,12 @@ Quotation for Order
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="inventory.js"></script>
 
 <script>
 //=================== FULL JS UPDATED ===================
-
+let quotationItems = [];
 // Firebase Config
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -289,25 +315,123 @@ function fetchHistoryFromFirebase(){
 fetchHistoryFromFirebase();
 
 // Items List
-let items=[
-  {name:"3R Photo Print",price:20},{name:"4R Photo Print",price:25},{name:"5R Photo Print",price:30},{name:"A4 Photo Print",price:60},{name:"Polaroid Photo Print",price:60},
-  {name:"Rush ID Package 1",price:35},{name:"Rush ID Package 2",price:50},{name:"Rush ID Package 3",price:45},
-  {name:"Rush ID Package 4",price:45},{name:"Rush ID Package 5",price:65},{name:"Typing Job",price:50},
-  {name:"Document Print Short",price:7},{name:"Document Print A4",price:8},{name:"Document Print Long",price:10},
-  {name:"Desk Calendar",price:150},{name:"A4 Sintra Board",price:140},{name:"A3 Sintra Board",price:290},
-  {name:"B5 Notebook Chipboard Cover",price:199},{name:"A5 Notebook Chipboard Cover",price:95},
-  {name:"A5 Notebook Photo Paper Cover",price:85},{name:"Composition Notebook",price:69},{name:"Customized T-Shirt",price:280},{name:"Customized Mug",price:150},{name:"Customized Tumbler",price:180},{name:"Customized Cap",price:120},{name:"Customized Totebag",price:179},{name:"Customized Wallet",price:79},{name:"Customized Ref Magnet",price:35}
-];
+let services = {
+  "Photo Print": [
+    {name:"3R Photo Print",price:20},
+    {name:"4R Photo Print",price:25},
+    {name:"5R Photo Print",price:30},
+    {name:"A4 Photo Print",price:60},
+    {name:"Polaroid Photo Print",price:60}
+  ],
 
+  "Rush ID": [
+    {name:"Rush ID Package 1",price:35},
+    {name:"Rush ID Package 2",price:50},
+    {name:"Rush ID Package 3",price:45},
+    {name:"Rush ID Package 4",price:45},
+    {name:"Rush ID Package 5",price:65}
+  ],
+
+  "Printing": [
+    {name:"Document Print Short",price:7},
+    {name:"Document Print A4",price:8},
+    {name:"Document Print Long",price:10}
+  ],
+
+  "Customized T-Shirt":[
+    {name:"Small",price:280},
+    {name:"Medium",price:280},
+    {name:"Large",price:280},
+    {name:"XL",price:300}
+  ],
+
+  "Customized Mug":[
+    {name:"White Mug",price:150},
+    {name:"Magic Mug",price:200}
+  ],
+
+  "Customized Tumbler":[
+    {name:"Regular",price:180},
+    {name:"Premium",price:220}
+  ],
+  
+  "Customized Ref Magnets":[
+    {name:"ATM size",price:25},
+    {name:"3x3",price:45}
+  ],
+
+  "Others":[
+    {name:"Desk Calendar",price:150},
+    {name:"A4 Sintra Board",price:140},
+    {name:"A3 Sintra Board",price:290}
+  ]
+};
+
+function populateCategories(){
+  let cat=document.getElementById("category");
+  cat.innerHTML='<option value="">Select Category</option>';
+
+  Object.keys(services).forEach(c=>{
+    cat.innerHTML+=`<option value="${c}">${c}</option>`;
+  });
+}
+populateCategories();
+
+document.getElementById("category").addEventListener("change",function(){
+
+  let category=this.value;
+  let itemSelect=document.getElementById("item");
+
+  itemSelect.innerHTML='<option value="">Select Service</option>';
+
+  if(!services[category]) return;
+
+  services[category].forEach(i=>{
+    itemSelect.innerHTML+=`<option value="${i.name}" data-price="${i.price}">
+      ${i.name}
+    </option>`;
+  });
+
+});
+document.getElementById("item").addEventListener("change",function(){
+  let price=this.selectedOptions[0].dataset.price || 0;
+  document.getElementById("price").value=price;
+});
 // Populate Selects
+// Populate Selects (fixed)
+// Populate Selects with categories for both Add Receipt and Quotation
 function populateItems(){
-  let sel=document.getElementById("item");
-  let qsel=document.getElementById("qItemSelect");
-  sel.innerHTML='<option value="">Select Service</option>';
-  qsel.innerHTML='<option value="">Select Service</option>';
-  items.forEach(i=>{
-    sel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`;
-    qsel.innerHTML+=`<option value="${i.name}" data-price="${i.price}">${i.name}</option>`;
+  let sel = document.getElementById("item");
+  let qsel = document.getElementById("qItemSelect");
+
+  sel.innerHTML = '<option value="">Select Service</option>';
+  qsel.innerHTML = '<option value="">Select Service</option>';
+
+  // Loop through categories
+  Object.keys(services).forEach(category => {
+    // Create optgroup for Add Receipt
+    let optgroup1 = document.createElement("optgroup");
+    optgroup1.label = category;
+    services[category].forEach(i => {
+      let option = document.createElement("option");
+      option.value = i.name;
+      option.dataset.price = i.price;
+      option.textContent = i.name;
+      optgroup1.appendChild(option);
+    });
+    sel.appendChild(optgroup1);
+
+    // Create optgroup for Quotation
+    let optgroup2 = document.createElement("optgroup");
+    optgroup2.label = category;
+    services[category].forEach(i => {
+      let option = document.createElement("option");
+      option.value = i.name;
+      option.dataset.price = i.price;
+      option.textContent = i.name;
+      optgroup2.appendChild(option);
+    });
+    qsel.appendChild(optgroup2);
   });
 }
 populateItems();
@@ -396,38 +520,50 @@ function fetchReceiptsFromFirebase(){
   });
 }
 // Save Receipt
-function saveReceipt(){
+function saveReceipt() {
   if(count===0){Swal.fire("Error","No items added","error");return;}
-  let profit=total*0.45;
-  let paymentType=document.getElementById("paymentType").value;
-  let dpAmount=paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
-  
- const receipt = {
-  rno: document.getElementById("rNoPrint").innerText,
-  date: new Date().toLocaleDateString(),
-  shipTo: document.getElementById("custName").value || "-",
-  address: document.getElementById("custAddress").value || "-",
-  total: total,
-  profit: profit,
-  paymentMethod: document.getElementById("paymentMethod").value,
-  paymentType: paymentType,
-  downpayment: dpAmount,
-  monthlyProfitSplit: { // new field
-    person1: Math.round(profit * 0.3),
-    person2: Math.round(profit * 0.3),
-    person3: Math.round(profit * 0.3),
-    maintenance: Math.round(profit * 0.1)
-  }
-};
 
-  // Save to localStorage
-  receiptHistory.push(receipt);
-  localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-  
-  // Save to Firebase
+  let profit = total * 0.45;
+  let paymentType = document.getElementById("paymentType").value;
+  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
+
+  // Prepare receipt object
+  const receipt = {
+    rno: document.getElementById("rNoPrint").innerText,
+    date: new Date().toLocaleDateString(),
+    shipTo: document.getElementById("custName").value || "-",
+    address: document.getElementById("custAddress").value || "-",
+    total: total,
+    profit: profit,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    paymentType: paymentType,
+    downpayment: dpAmount,
+    items: undoStack.map(item => ({
+      name: item.itemName,
+      qty: item.qty,
+      price: item.price,
+      size: item.size || null
+    }))
+  };
+
+  // Save receipt to Firebase
   saveReceiptToFirebase(receipt);
 
+  // --- SUBTRACT STOCK FROM INVENTORY ---
+  receipt.items.forEach(item => {
+    const itemRef = db.ref('inventory/' + item.name);
+    itemRef.once('value', snapshot => {
+      if(snapshot.exists()){
+        const currentStock = snapshot.val().stock || 0;
+        const newStock = currentStock - item.qty;
+        itemRef.update({ stock: newStock < 0 ? 0 : newStock });
+      }
+    });
+  });
+
   Swal.fire("Saved","Receipt saved!","success");
+
+  // Reset receipt form
   document.querySelector("#previewTable tbody").innerHTML="";
   total=0; count=0; undoStack=[];
   document.getElementById("custName").value="";
@@ -643,10 +779,10 @@ function updateDashboard(){
       monthlySales += rTotal; 
       monthlyProfit += rProfit;
     }
-    if(r.date === todayStr){
-      dailySales += rTotal; 
-      dailyProfit += rProfit;
-    }
+ if(rDate.toLocaleDateString() === todayStr){
+  dailySales += rTotal; 
+  dailyProfit += rProfit;
+}
   });
 
   // Update dashboard totals
@@ -716,6 +852,191 @@ function downloadQuotationPDF(){
 
 // INITIAL LOAD
 updateHistory(); updateDashboard();
+function addQuotationItem() {
+  let item = document.getElementById("qItemSelect").value;
+  let qty = Number(document.getElementById("qQty").value);
+  let price = Number(document.getElementById("qUnitPrice").value);
+
+  if (!item || !qty || !price) {
+    Swal.fire("Error", "Please fill all fields", "error");
+    return;
+  }
+
+  let total = qty * price;
+
+  quotationItems.push({ item, qty, price, total });
+
+  renderQuotationPreview();
+
+  // Reset input fields
+  document.getElementById("qQty").value = 1;
+  document.getElementById("qUnitPrice").value = price;
+}
+function renderQuotationPreview() {
+  let html = '';
+  let grandTotal = 0;
+
+  quotationItems.forEach(i => {
+    grandTotal += Number(i.total);
+    html += `<strong>Item:</strong> ${i.item}<br>
+             <strong>Quantity:</strong> ${i.qty} pcs<br>
+             <strong>Unit Price:</strong> ₱${parseFloat(i.price).toFixed(2)}<br>
+             <strong>Total Amount:</strong> ₱${parseFloat(i.total).toFixed(2)}<br><br>`;
+  });
+
+  html += `Notes:<br>
+           • Price includes customization.<br>
+           • At least 50% downpayment required.<br>
+           • Remaining balance upon delivery.<br><br>
+           Sincerely,<br>
+           JKM PRIME DIGITAL PRINTS`;
+
+  document.getElementById("quotationText").innerHTML = html;
+}
+function downloadQuotationImage() {
+  const quotationEl = document.getElementById("quotationPreview");
+
+  // Use html2canvas
+  html2canvas(quotationEl, {
+    scale: 2, // higher resolution
+    useCORS: true,
+    scrollY: -window.scrollY
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png"); // PNG format
+    link.download = "quotation.png";
+    link.click();
+    Swal.fire("Success", "Quotation downloaded as image!", "success");
+  }).catch(err => {
+    console.error(err);
+    Swal.fire("Error", "Failed to download quotation as image", "error");
+  });
+}
+// ================= INVENTORY MANAGEMENT WITH GROUPS =================
+
+// inventory.js
+
+// Firebase reference
+const inventoryRef = firebase.database().ref("inventory");
+
+// Populate categories only when inventory tab is shown
+document.querySelector('a[href="#inventoryTab"]').addEventListener('shown.bs.tab', function () {
+    const catSelect = document.getElementById("invCategory");
+    if (catSelect.options.length > 1) return; // prevent double population
+
+    const inventoryGroups = {
+        "Sublimation": ["T-Shirt", "Mug", "Ref Magnets", "Totebag"],
+        "Photo Print": ["3R", "4R", "5R", "A4", "Polaroid"],
+        "Rush ID": ["Package 1","Package 2","Package 3","Package 4","Package 5"],
+        "Printing": ["Document Short", "Document A4", "Document Long"],
+        "Others": ["Desk Calendar","A4 Sintra Board","A3 Sintra Board"]
+    };
+
+    catSelect.innerHTML = '<option value="">Select Item</option>';
+
+    for (const [group, items] of Object.entries(inventoryGroups)) {
+        const optGroup = document.createElement("optgroup");
+        optGroup.label = group;
+        items.forEach(itemName => {
+            const option = document.createElement("option");
+            option.value = itemName;
+            option.textContent = itemName;
+            optGroup.appendChild(option);
+        });
+        catSelect.appendChild(optGroup);
+    }
+
+    updateInventoryTable(); // show existing items
+});
+
+// Add inventory item to Firebase
+function addInventoryItem() {
+    const name = document.getElementById("invCategory").value;
+    const stock = Number(document.getElementById("invStock").value);
+    const price = Number(document.getElementById("invUnitPrice").value);
+
+    if (!name || stock <= 0 || price <= 0) {
+        Swal.fire("Error", "Please fill all fields", "error");
+        return;
+    }
+
+    const newItemRef = inventoryRef.push();
+    newItemRef.set({ name, stock, price });
+
+    document.getElementById("invStock").value = "";
+    document.getElementById("invUnitPrice").value = "";
+    Swal.fire("Success", "Item added!", "success");
+}
+
+// Update inventory table
+function updateInventoryTable() {
+    const tbody = document.getElementById("inventoryBody");
+    tbody.innerHTML = "";
+    inventoryRef.once("value", snapshot => {
+        const data = snapshot.val() || {};
+        Object.entries(data).forEach(([id, item], i) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${i+1}</td>
+                <td>${item.name}</td>
+                <td>${item.stock}</td>
+                <td>₱${item.price}</td>
+                <td>
+                    <button class="btn btn-sm btn-blue" onclick="editInventory('${id}')">Edit</button>
+                    <button class="btn btn-sm btn-red" onclick="deleteInventory('${id}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    });
+}
+
+// Delete item
+function deleteInventory(id) {
+    Swal.fire({
+        title: "Delete?",
+        text: "Are you sure?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes"
+    }).then(res => {
+        if (res.isConfirmed) {
+            inventoryRef.child(id).remove();
+            Swal.fire("Deleted", "Item removed", "success");
+            updateInventoryTable();
+        }
+    });
+}
+
+// Edit item
+function editInventory(id) {
+    inventoryRef.child(id).once("value", snapshot => {
+        const item = snapshot.val();
+        Swal.fire({
+            title: "Edit Inventory",
+            html: `
+                <input id="swalName" class="swal2-input" value="${item.name}">
+                <input id="swalStock" type="number" class="swal2-input" value="${item.stock}">
+                <input id="swalPrice" type="number" class="swal2-input" value="${item.price}">
+            `,
+            preConfirm: () => ({
+                name: document.getElementById("swalName").value,
+                stock: Number(document.getElementById("swalStock").value),
+                price: Number(document.getElementById("swalPrice").value)
+            }),
+            showCancelButton: true
+        }).then(res => {
+            if (res.isConfirmed) {
+                inventoryRef.child(id).update(res.value);
+                Swal.fire("Updated", "Item updated", "success");
+                updateInventoryTable();
+            }
+        });
+    });
+}
+
+// Listen for changes in real-time
+inventoryRef.on("value", updateInventoryTable);
 
 </script>
 </body>
