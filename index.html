@@ -625,10 +625,17 @@ function deleteReceiptFromFirebase(rno){
 
 function fetchReceiptsFromFirebase(){
   const ref = db.ref('receipts');
-  ref.on('value', snapshot=>{
+
+  ref.on('value', snapshot => {
     const data = snapshot.val() || {};
-    receiptHistory = Object.values(data);
+
+    receiptHistory = Object.entries(data).map(([key, val]) => ({
+      firebaseKey: key,
+      ...val
+    }));
+
     localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+
     updateHistory();
     updateDashboard();
   });
@@ -662,7 +669,13 @@ function saveReceipt() {
   };
 
   // Save receipt to Firebase
-  saveReceiptToFirebase(receipt);
+// Save receipt to Firebase
+saveReceiptToFirebase(receipt);
+
+// ✅ ADD THIS (IMPORTANT FIX)
+receiptHistory.push(receipt);
+updateHistory();
+updateDashboard();
 
   // --- SUBTRACT STOCK FROM INVENTORY ---
   receipt.items.forEach(item => {
@@ -767,10 +780,21 @@ function deleteReceipt(rno){
   }).then(res => {
     if(res.isConfirmed){
 
-      // remove ONLY from Firebase (source of truth)
-      deleteReceiptFromFirebase(rno);
+      const ref = db.ref('receipts');
 
-      Swal.fire("Deleted", "Receipt removed", "success");
+      ref.orderByChild('rno').equalTo(rno).once('value', snapshot => {
+        snapshot.forEach(child => {
+          child.ref.remove();
+        });
+
+        // ✅ FIX UI AFTER DELETE
+        receiptHistory = receiptHistory.filter(r => r.rno !== rno);
+        updateHistory();
+        updateDashboard();
+
+        Swal.fire("Deleted", "Receipt removed", "success");
+      });
+
     }
   });
 }
