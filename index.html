@@ -681,27 +681,10 @@ function saveReceipt() {
 saveReceiptToFirebase(receipt);
 
 // ✅ ADD THIS (IMPORTANT FIX)
-  receiptHistory.push(receipt);
-    updateHistory();
-    updateDashboard();
-
-    Swal.fire({
-      icon: "success",
-      title: "Saved!",
-      text: "Receipt successfully saved to history",
-      timer: 1500,
-      showConfirmButton: false
-    });
-  }
-  .catch(err => {
-    console.error(err);
-
-    Swal.fire({
-      icon: "error",
-      title: "Save Failed",
-      text: "Something went wrong while saving receipt"
-    });
-  });
+receiptHistory.push(receipt);
+updateHistory();
+updateDashboard();
+}
 
 // Toggle Dark Mode
 function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
