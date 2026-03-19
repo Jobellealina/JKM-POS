@@ -757,7 +757,6 @@ function editReceipt(idx){
   });
 }
 
-// Delete Receipt
 function deleteReceipt(rno){
   Swal.fire({
     title: "Delete?",
@@ -768,16 +767,8 @@ function deleteReceipt(rno){
   }).then(res => {
     if(res.isConfirmed){
 
-      // delete from Firebase first
+      // remove ONLY from Firebase (source of truth)
       deleteReceiptFromFirebase(rno);
-
-      // remove from local array
-      receiptHistory = receiptHistory.filter(r => r.rno !== rno);
-
-      localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-
-      updateHistory();
-      updateDashboard();
 
       Swal.fire("Deleted", "Receipt removed", "success");
     }
