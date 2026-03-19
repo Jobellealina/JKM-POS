@@ -477,31 +477,33 @@ function deleteReceiptFromFirebase(rno){
 }
 
 //=================== SERVICES ===================
-services = {
+//=================== SERVICES (MUST BE FIRST) ===================
+const services = {
   "Photo Print": [
-    {name:"3R Photo Print",price:20},
-    {name:"4R Photo Print",price:25},
-    {name:"5R Photo Print",price:30},
-    {name:"A4 Photo Print",price:60},
-    {name:"Polaroid Photo Print",price:60}
+    { name: "3R Photo Print", price: 20 },
+    { name: "4R Photo Print", price: 25 },
+    { name: "5R Photo Print", price: 30 },
+    { name: "A4 Photo Print", price: 60 },
+    { name: "Polaroid Photo Print", price: 60 }
   ],
 
   "Printing": [
-    {name:"Document Print Short",price:7},
-    {name:"Document Print A4",price:8},
-    {name:"Document Print Long",price:10}
+    { name: "Document Print Short", price: 7 },
+    { name: "Document Print A4", price: 8 },
+    { name: "Document Print Long", price: 10 }
   ],
 
-  "Customized T-Shirt":[
-    {name:"Small",price:280},
-    {name:"Medium",price:280},
-    {name:"Large",price:280},
-    {name:"XL",price:300}
+  "Customized T-Shirt": [
+    { name: "Small", price: 280 },
+    { name: "Medium", price: 280 },
+    { name: "Large", price: 280 },
+    { name: "XL", price: 300 }
   ]
 };
 
 //=================== POPULATE ITEMS ===================
-function populateItems(){
+function populateItems() {
+
   let sel = document.getElementById("item");
   let qsel = document.getElementById("qItemSelect");
 
@@ -510,30 +512,29 @@ function populateItems(){
 
   Object.keys(services).forEach(category => {
 
-    let optgroup1 = document.createElement("optgroup");
-    optgroup1.label = category;
+    let group1 = document.createElement("optgroup");
+    group1.label = category;
 
-    let optgroup2 = document.createElement("optgroup");
-    optgroup2.label = category;
+    let group2 = document.createElement("optgroup");
+    group2.label = category;
 
     services[category].forEach(i => {
 
-      let option1 = document.createElement("option");
-      option1.value = i.name;
-      option1.dataset.price = i.price;
-      option1.textContent = i.name;
+      let opt1 = document.createElement("option");
+      opt1.value = i.name;
+      opt1.dataset.price = i.price;
+      opt1.textContent = i.name;
 
-      let option2 = option1.cloneNode(true);
+      let opt2 = opt1.cloneNode(true);
 
-      optgroup1.appendChild(option1);
-      optgroup2.appendChild(option2);
+      group1.appendChild(opt1);
+      group2.appendChild(opt2);
     });
 
-    sel.appendChild(optgroup1);
-    qsel.appendChild(optgroup2);
+    sel.appendChild(group1);
+    qsel.appendChild(group2);
   });
 }
-populateItems();
 
 //=================== ITEM CHANGE ===================
 document.getElementById("item").addEventListener("change",function(){
