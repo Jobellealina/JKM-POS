@@ -405,45 +405,81 @@ Quotation for Order
 
 <script>
 //=================== FULL JS UPDATED ===================
+
 let quotationItems = [];
-// Firebase Config
+let receiptHistory = [];
+let projectHistory = [];
+let services = {};
+let undoStack = [];
+let count = 0;
+let total = 0;
+
+//=================== FIREBASE INIT ===================
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
   databaseURL: "https://jkm-printing-system-default-rtdb.firebaseio.com/",
   projectId: "your-project-id",
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+//=================== FETCH HISTORY ===================
 function fetchHistoryFromFirebase(){
-  const ref = db.ref('trackingProjects'); // o kung anong path sa Firebase
+  const ref = db.ref('trackingProjects');
+
   ref.on('value', snapshot => {
     const data = snapshot.val() || {};
-    projectHistory = Object.values(data); // convert object to array
-    renderHistory(); // function mo para ipakita sa table
+    projectHistory = Object.values(data);
+    renderHistory();
+  });
+}
+fetchHistoryFromFirebase();
+
+//=================== FETCH RECEIPTS ===================
+function fetchReceiptsFromFirebase(){
+  const ref = db.ref('receipts');
+
+  ref.on('value', snapshot => {
+    const data = snapshot.val() || {};
+
+    receiptHistory = Object.entries(data).map(([key, val]) => ({
+      firebaseKey: key,
+      ...val
+    }));
+
+    updateHistory();
+    updateDashboard();
   });
 }
 
-// Call this after Firebase initialization
-fetchHistoryFromFirebase();
+//=================== SAVE RECEIPT FIREBASE ===================
+function saveReceiptToFirebase(receipt){
+  const ref = db.ref('receipts');
+  const newRef = ref.push();
+  return newRef.set(receipt);
+}
 
-// Items List
-let services = {
+//=================== DELETE RECEIPT FIREBASE ===================
+function deleteReceiptFromFirebase(rno){
+  const ref = db.ref('receipts');
+
+  ref.orderByChild('rno').equalTo(rno).once('value', snapshot=>{
+    snapshot.forEach(child=>{
+      child.ref.remove();
+    });
+  });
+}
+
+//=================== SERVICES ===================
+services = {
   "Photo Print": [
     {name:"3R Photo Print",price:20},
     {name:"4R Photo Print",price:25},
     {name:"5R Photo Print",price:30},
     {name:"A4 Photo Print",price:60},
     {name:"Polaroid Photo Print",price:60}
-  ],
-
-  "Rush ID": [
-    {name:"Rush ID Package 1",price:35},
-    {name:"Rush ID Package 2",price:50},
-    {name:"Rush ID Package 3",price:45},
-    {name:"Rush ID Package 4",price:45},
-    {name:"Rush ID Package 5",price:65}
   ],
 
   "Printing": [
@@ -457,63 +493,10 @@ let services = {
     {name:"Medium",price:280},
     {name:"Large",price:280},
     {name:"XL",price:300}
-  ],
-
-  "Customized Mug":[
-    {name:"White Mug",price:150},
-    {name:"Magic Mug",price:200}
-  ],
-
-  "Customized Tumbler":[
-    {name:"Regular",price:180},
-    {name:"Premium",price:220}
-  ],
-  
-  "Customized Ref Magnets":[
-    {name:"ATM size",price:25},
-    {name:"3x3",price:45}
-  ],
-
-  "Others":[
-    {name:"Desk Calendar",price:150},
-    {name:"A4 Sintra Board",price:140},
-    {name:"A3 Sintra Board",price:290}
   ]
 };
 
-function populateCategories(){
-  let cat=document.getElementById("category");
-  cat.innerHTML='<option value="">Select Category</option>';
-
-  Object.keys(services).forEach(c=>{
-    cat.innerHTML+=`<option value="${c}">${c}</option>`;
-  });
-}
-populateCategories();
-
-document.getElementById("category").addEventListener("change",function(){
-
-  let category=this.value;
-  let itemSelect=document.getElementById("item");
-
-  itemSelect.innerHTML='<option value="">Select Service</option>';
-
-  if(!services[category]) return;
-
-  services[category].forEach(i=>{
-    itemSelect.innerHTML+=`<option value="${i.name}" data-price="${i.price}">
-      ${i.name}
-    </option>`;
-  });
-
-});
-document.getElementById("item").addEventListener("change",function(){
-  let price=this.selectedOptions[0].dataset.price || 0;
-  document.getElementById("price").value=price;
-});
-// Populate Selects
-// Populate Selects (fixed)
-// Populate Selects with categories for both Add Receipt and Quotation
+//=================== POPULATE ITEMS ===================
 function populateItems(){
   let sel = document.getElementById("item");
   let qsel = document.getElementById("qItemSelect");
@@ -521,135 +504,118 @@ function populateItems(){
   sel.innerHTML = '<option value="">Select Service</option>';
   qsel.innerHTML = '<option value="">Select Service</option>';
 
-  // Loop through categories
   Object.keys(services).forEach(category => {
-    // Create optgroup for Add Receipt
+
     let optgroup1 = document.createElement("optgroup");
     optgroup1.label = category;
-    services[category].forEach(i => {
-      let option = document.createElement("option");
-      option.value = i.name;
-      option.dataset.price = i.price;
-      option.textContent = i.name;
-      optgroup1.appendChild(option);
-    });
-    sel.appendChild(optgroup1);
 
-    // Create optgroup for Quotation
     let optgroup2 = document.createElement("optgroup");
     optgroup2.label = category;
+
     services[category].forEach(i => {
-      let option = document.createElement("option");
-      option.value = i.name;
-      option.dataset.price = i.price;
-      option.textContent = i.name;
-      optgroup2.appendChild(option);
+
+      let option1 = document.createElement("option");
+      option1.value = i.name;
+      option1.dataset.price = i.price;
+      option1.textContent = i.name;
+
+      let option2 = option1.cloneNode(true);
+
+      optgroup1.appendChild(option1);
+      optgroup2.appendChild(option2);
     });
+
+    sel.appendChild(optgroup1);
     qsel.appendChild(optgroup2);
   });
 }
 populateItems();
 
-// Variables
-let count=0,total=0,undoStack=[];
-let receiptHistory=[]; // we will populate from Firebase
-fetchReceiptsFromFirebase();
-
-// Item select change
+//=================== ITEM CHANGE ===================
 document.getElementById("item").addEventListener("change",function(){
-  document.getElementById("price").value=this.selectedOptions[0].dataset.price || 0;
+  document.getElementById("price").value =
+    this.selectedOptions[0]?.dataset.price || 0;
 });
 
-// Toggle downpayment input
-function toggleDownpayment(){
-  const type = document.getElementById("paymentType").value;
-  document.getElementById("downpaymentAmount").style.display = type==="Downpayment"?"block":"none";
-}
-
-// Add Item
+//=================== ADD ITEM ===================
 function addItem(){
-  const itemName=document.getElementById("item").value;
-  const qty=Number(document.getElementById("qty").value)||0;
-  const price=Number(document.getElementById("price").value)||0;
-  if(!itemName||qty<=0||price<=0) return;
-  const amount=Math.round(qty*price);
+
+  const itemName = document.getElementById("item").value;
+  const qty = Number(document.getElementById("qty").value) || 0;
+  const price = Number(document.getElementById("price").value) || 0;
+
+  if(!itemName || qty <= 0 || price <= 0) return;
+
+  const amount = qty * price;
+
   count++;
-  total+=amount;
-  undoStack.push({itemName,qty,price,amount});
-  let tbody=document.querySelector("#previewTable tbody");
-  let row=tbody.insertRow();
-  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td><td>₱${total}</td>`;
-  document.getElementById("grandTotal").innerText=`₱${total}`;
+  total += amount;
+
+  undoStack.push({itemName, qty, price, amount});
+
+  let tbody = document.querySelector("#previewTable tbody");
+  let row = tbody.insertRow();
+
+  row.innerHTML = `
+    <td>${count}</td>
+    <td>${itemName}</td>
+    <td>${qty}</td>
+    <td>₱${price}</td>
+    <td>₱${amount}</td>
+    <td>₱${total}</td>
+  `;
+
+  document.getElementById("grandTotal").innerText = `₱${total}`;
   updateReceiptHeader();
 }
 
-// Undo Item
+//=================== UNDO ===================
 function undoItem(){
   if(!undoStack.length) return;
-  let last=undoStack.pop();
-  document.querySelector("#previewTable tbody").deleteRow(-1);
-  total-=last.amount;
+
+  let last = undoStack.pop();
+
+  total -= last.amount;
   count--;
-  document.getElementById("grandTotal").innerText=`₱${total}`;
+
+  document.querySelector("#previewTable tbody").deleteRow(-1);
+
+  document.getElementById("grandTotal").innerText = `₱${total}`;
 }
 
-// Update Receipt Header
+//=================== RECEIPT HEADER ===================
 function updateReceiptHeader(){
-  document.getElementById("rNamePrint").innerText=document.getElementById("custName").value||"-";
-  document.getElementById("rAddressPrint").innerText=document.getElementById("custAddress").value||"-";
-  document.getElementById("rDatePrint").innerText=new Date().toLocaleDateString();
-  document.getElementById("rNoPrint").innerText="JKM"+Math.floor(Math.random()*90000+10000);
-  const paymentMethod=document.getElementById("paymentMethod").value;
-  const paymentType=document.getElementById("paymentType").value;
-  document.getElementById("rPaymentPrint").innerText=paymentMethod;
-  if(paymentType==="Downpayment"){
-    const dp=Number(document.getElementById("downpaymentAmount").value)||0;
-    const remaining=total-dp;
-    document.getElementById("rPaymentTypePrint").innerText=`Downpayment: ₱${dp} | Remaining: ₱${remaining}`;
-  } else document.getElementById("rPaymentTypePrint").innerText="Full Payment";
-}
-function saveReceiptToFirebase(receipt){
-  const ref = db.ref('receipts');
-  const newRef = ref.push();
-  newRef.set(receipt);
+
+  document.getElementById("rNamePrint").innerText =
+    document.getElementById("custName").value || "-";
+
+  document.getElementById("rAddressPrint").innerText =
+    document.getElementById("custAddress").value || "-";
+
+  document.getElementById("rDatePrint").innerText =
+    new Date().toLocaleDateString();
+
+  document.getElementById("rNoPrint").innerText =
+    "JKM" + Math.floor(Math.random()*90000+10000);
 }
 
-function deleteReceiptFromFirebase(rno){
-  const ref = db.ref('receipts');
-  ref.orderByChild('rno').equalTo(rno).once('value', snapshot=>{
-    snapshot.forEach(child=>{
-      child.ref.remove();
-    });
-  });
-}
+//=================== SAVE RECEIPT (FIXED FULL) ===================
+async function saveReceipt(){
 
-function fetchReceiptsFromFirebase(){
-  const ref = db.ref('receipts');
-
-  ref.on('value', snapshot => {
-    const data = snapshot.val() || {};
-
-    receiptHistory = Object.entries(data).map(([key, val]) => ({
-      firebaseKey: key,
-      ...val
-    }));
-
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-
-    updateHistory();
-    updateDashboard();
-  });
-}
-// Save Receipt
-function saveReceipt() {
-  if(count===0){Swal.fire("Error","No items added","error");return;}
-  deductInventoryFromReceipt(receiptItems);
+  if(count === 0){
+    Swal.fire("Error","No items added","error");
+    return;
+  }
 
   let profit = total * 0.45;
-  let paymentType = document.getElementById("paymentType").value;
-  let dpAmount = paymentType==="Downpayment"?Number(document.getElementById("downpaymentAmount").value)||0:total;
 
-  // Prepare receipt object
+  let paymentType = document.getElementById("paymentType").value;
+
+  let dpAmount =
+    paymentType === "Downpayment"
+      ? Number(document.getElementById("downpaymentAmount").value) || 0
+      : total;
+
   const receipt = {
     rno: document.getElementById("rNoPrint").innerText,
     date: new Date().toLocaleDateString(),
@@ -663,424 +629,82 @@ function saveReceipt() {
     items: undoStack.map(item => ({
       name: item.itemName,
       qty: item.qty,
-      price: item.price,
-      size: item.size || null
+      price: item.price
     }))
   };
 
-  // Save receipt to Firebase
-// Save receipt to Firebase
-saveReceiptToFirebase(receipt);
+  try{
 
-// ✅ ADD THIS (IMPORTANT FIX)
-receiptHistory.push(receipt);
-updateHistory();
-updateDashboard();
+    await saveReceiptToFirebase(receipt);
 
+    Swal.fire("Success","Receipt saved successfully","success");
+
+  }catch(err){
+    console.error(err);
+    Swal.fire("Error","Failed to save receipt","error");
+  }
 }
 
-// Toggle Dark Mode
-function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
-
-// Print Receipt
-function printReceipt(){window.print();}
-
+//=================== UPDATE HISTORY ===================
 function updateHistory(filterFn){
-  const el=document.getElementById("receiptHistory"); el.innerHTML="";
-  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
+
+  const el = document.getElementById("receiptHistory");
+  el.innerHTML = "";
+
+  let data = filterFn
+    ? receiptHistory.filter(filterFn)
+    : receiptHistory;
+
   data.forEach((r,i)=>{
-    el.innerHTML+=`<tr>
-      <td>${i+1}</td>
-      <td>${r.rno}</td>
-      <td>${r.date}</td>
-      <td>${r.shipTo}</td>
-      <td>₱${Math.round(r.total)}</td>
-      <td>₱${Math.round(r.profit)}</td>
-      <td>${r.paymentType}</td>
-      <td>
-        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt('${r.rno}')">✖</button>
-      </td>
-    </tr>`;
+    el.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${r.rno}</td>
+        <td>${r.date}</td>
+        <td>${r.shipTo}</td>
+        <td>₱${r.total}</td>
+        <td>₱${r.profit}</td>
+        <td>${r.paymentType}</td>
+      </tr>
+    `;
   });
 }
 
-// Edit Receipt (modern layout)
-function editReceipt(idx){
-  const r=receiptHistory[idx];
-  Swal.fire({
-    title:'Edit Receipt',
-    html:`<div class="modal-left">
-
-      <label style="text-align: left;">Customer Name</label><input id="swalName" value="${r.shipTo}">
-      <label style="text-align: left;">Address</label><input id="swalAddress" value="${r.address||''}">
-      <label style="text-align: left;">Payment Method</label><select id="swalPaymentMethod">
-        <option ${r.paymentMethod==="Cash"?"selected":""}>Cash</option>
-        <option ${r.paymentMethod==="GCash"?"selected":""}>GCash</option>
-        <option ${r.paymentMethod==="Bank Transfer"?"selected":""}>Bank Transfer</option>
-      </select>
-      <label style="text-align: left;">Payment Type</label><select id="swalPaymentType">
-        <option value="Full Payment" ${r.paymentType==="Full Payment"?"selected":""}>Full Payment</option>
-        <option value="Downpayment" ${r.paymentType==="Downpayment"?"selected":""}>Downpayment</option>
-      </select>
-      <label style="text-align: left;">Downpayment Amount</label><input id="swalDP" value="${r.downpayment||0}">
-    </div>`,
-    focusConfirm:false,
-    showCancelButton:true,
-    preConfirm:()=>( {
-      shipTo:document.getElementById("swalName").value,
-      address:document.getElementById("swalAddress").value,
-      paymentMethod:document.getElementById("swalPaymentMethod").value,
-      paymentType:document.getElementById("swalPaymentType").value,
-      downpayment:Number(document.getElementById("swalDP").value)||0
-    })
-  }).then(res=>{
-    if(res.isConfirmed){
-      receiptHistory[idx].shipTo=res.value.shipTo;
-      receiptHistory[idx].address=res.value.address;
-      receiptHistory[idx].paymentMethod=res.value.paymentMethod;
-      receiptHistory[idx].paymentType=res.value.paymentType;
-      receiptHistory[idx].downpayment=res.value.downpayment;
-      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
-      updateHistory(); updateDashboard();
-      Swal.fire("Updated","Receipt updated","success");
-    }
-  });
-}
-
-function deleteReceipt(rno){
-  Swal.fire({
-    title: "Delete?",
-    text: "Are you sure?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes"
-  }).then(res => {
-    if(res.isConfirmed){
-
-      const ref = db.ref('receipts');
-
-      ref.orderByChild('rno').equalTo(rno).once('value', snapshot => {
-        snapshot.forEach(child => {
-          child.ref.remove();
-        });
-
-        // ✅ FIX UI AFTER DELETE
-        receiptHistory = receiptHistory.filter(r => r.rno !== rno);
-        updateHistory();
-        updateDashboard();
-
-        Swal.fire("Deleted", "Receipt removed", "success");
-      });
-
-    }
-  });
-}
-
-function exportToExcel() {
-  if (!receiptHistory || receiptHistory.length === 0) {
-    Swal.fire("Error", "No receipts to export", "error");
-    return;
-  }
-
-  try {
-    // Prepare data
-    const exportData = receiptHistory.map((r, i) => ({
-      No: i + 1,
-      Receipt: r.rno,
-      Date: r.date,
-      Customer: r.shipTo,
-      Sales: Number(r.total) || 0,
-      Profit: Number(r.profit) || 0,
-      PaymentType: r.paymentType || "-"
-    }));
-
-    // Convert to Excel
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Receipts");
-    XLSX.writeFile(wb, "receipt_history.xlsx");
-
-    Swal.fire("Success", "Exported to Excel!", "success");
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Failed to export. Check console.", "error");
-  }
-}
-
-// Export to PDF
-function exportToPDF() {
-  if (!receiptHistory || receiptHistory.length === 0) {
-    Swal.fire("Error", "No receipts to export", "error");
-    return;
-  }
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(16);
-    doc.text("Receipt History", 105, 10, { align: "center" });
-
-    doc.setFontSize(12);
-
-    // Table headers
-    const headers = [["No", "Receipt", "Date", "Customer", "Sales", "Profit", "Payment Type"]];
-
-    // Table rows
-    const rows = receiptHistory.map((r, i) => [
-      i + 1,
-      r.rno,
-      r.date,
-      r.shipTo,
-      "PHP " + Number(r.total || 0).toLocaleString(),
-      "PHP " + Number(Math.round(r.profit || 0)).toLocaleString(),
-      r.paymentType || "-"
-    ]);
-
-    // AutoTable
-    if (doc.autoTable) {
-      doc.autoTable({
-        head: headers,
-        body: rows,
-        startY: 20,
-        theme: "grid",
-        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-        styles: { fontSize: 10 }
-      });
-    } else {
-      // fallback table
-      let y = 20;
-      doc.text("No | Receipt | Date | Customer | Sales | Profit | Payment Type", 10, y);
-      y += 6;
-
-      rows.forEach(r => {
-        doc.text(r.join(" | "), 10, y);
-        y += 6;
-      });
-    }
-
-    doc.save("receipt_history.pdf");
-
-    Swal.fire("Success", "Exported to PDF!", "success");
-
-  } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "Failed to export PDF. Check console.", "error");
-  }
-}
-// Apply Filters
-function applyFilters(){
-  let from=document.getElementById("fromDate").value;
-  let to=document.getElementById("toDate").value;
-  let search=document.getElementById("searchInput").value.toLowerCase();
-  updateHistory(r=>{
-    let d=new Date(r.date); let validDate=true;
-    if(from) validDate=d>=new Date(from);
-    if(to) validDate=validDate&&d<=new Date(to);
-    let validSearch=!search||r.shipTo.toLowerCase().includes(search)||r.rno.toLowerCase().includes(search);
-    return validDate&&validSearch;
-  });
-}
-
-// Update Dashboard
+//=================== DASHBOARD FIXED ===================
 function updateDashboard(){
-  let today = new Date();
-  let todayStr = today.toLocaleDateString();
-  let dailySales = 0, dailyProfit = 0, monthlySales = 0, monthlyProfit = 0;
-  let currentMonth = today.getMonth() + 1;
+
+  const today = new Date();
+  const todayStr = today.toLocaleDateString();
+  const currentMonth = today.getMonth() + 1;
+
+  let dailySales = 0;
+  let monthlySales = 0;
+  let monthlyProfit = 0;
 
   receiptHistory.forEach(r => {
-    let rDate = new Date(r.date);
-    let rMonth = rDate.getMonth() + 1;
-    let rTotal = Number(r.total) || 0;
-    let rProfit = rTotal * 0.45; // your existing profit calculation
-    if(rMonth === currentMonth){
-      monthlySales += rTotal; 
-      monthlyProfit += rProfit;
+
+    let d = new Date(r.date);
+    let month = d.getMonth() + 1;
+    let totalVal = Number(r.total) || 0;
+
+    if(d.toLocaleDateString() === todayStr){
+      dailySales += totalVal;
     }
- if(rDate.toLocaleDateString() === todayStr){
-  dailySales += rTotal; 
-  dailyProfit += rProfit;
-}
+
+    if(month === currentMonth){
+      monthlySales += totalVal;
+      monthlyProfit += totalVal * 0.45;
+    }
   });
 
-  // Update dashboard totals
   document.getElementById("dailySales").innerText = dailySales;
-  document.getElementById("dailyProfit").innerText = dailyProfit;
   document.getElementById("monthlySales").innerText = monthlySales;
   document.getElementById("monthlyProfit").innerText = monthlyProfit;
-
-  // 💰 Split monthly profit
-// 30% Profit Each
-const profitEach = Math.round(monthlyProfit * 0.3);
-document.getElementById("profitEach").innerText = profitEach;
-
-// Maintenance 10%
-const maintenanceShare = Math.round(monthlyProfit * 0.1);
-document.getElementById("maintenanceShare").innerText = maintenanceShare;
-
-  renderCharts();
 }
 
-// Render Charts (line & bar)
-let barChartInstance,lineChartInstance;
-function renderCharts(){
-  let barCtx=document.getElementById("salesBarChart").getContext("2d");
-  let lineCtx=document.getElementById("salesLineChart").getContext("2d");
-  let labels=[],data=[];
-  receiptHistory.forEach(r=>{labels.push(r.date); data.push(r.total);});
-  if(barChartInstance) barChartInstance.destroy();
-  if(lineChartInstance) lineChartInstance.destroy();
-  barChartInstance=new Chart(barCtx,{type:'bar',data:{labels:labels,datasets:[{label:'Sales',data:data,backgroundColor:'#2563eb'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
-  lineChartInstance=new Chart(lineCtx,{type:'line',data:{labels:labels,datasets:[{label:'Sales Trend',data:data,borderColor:'#22c55e',fill:false,tension:0.3}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
-}
-
-const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-document.getElementById("monthLabel").innerText = monthNames[today.getMonth()] + " " + today.getFullYear();
-
-// Monthly reset check
-let lastMonth = localStorage.getItem("lastMonth") || today.getMonth();
-if (lastMonth != today.getMonth()) {
-  Swal.fire("New Month!", "Dashboard has been reset for the new month.", "info");
-  localStorage.setItem("lastMonth", today.getMonth());
-}
-// Quotation
-function generateQuotation(){
-  let custName=document.getElementById("qCustName").value;
-  let item=document.getElementById("qItemSelect").value;
-  let qty=document.getElementById("qQty").value;
-  let unitPrice=document.getElementById("qUnitPrice").value;
-  if(!custName||!item||!qty||!unitPrice){Swal.fire("Error","Please fill all fields","error");return;}
-  let totalAmount=qty*unitPrice;
-  let today=new Date();
-  document.getElementById("qDatePrint").innerText=today.toLocaleDateString();
-  document.getElementById("qNamePrint").innerText=custName;
-  document.getElementById("quotationText").innerHTML=`<strong>Item:</strong> ${item}<br>
-  <strong>Quantity:</strong> ${qty} pcs<br>
-  <strong>Unit Price:</strong> ₱${parseFloat(unitPrice).toFixed(2)}<br>
-  <strong>Total Amount:</strong> ₱${parseFloat(totalAmount).toFixed(2)}<br><br>
-  Notes: <br>• Price includes customization.<br>• At least 50% downpayment required.<br>• Remaining balance upon delivery.<br><br> Sincerely, <br> JKM PRIME DIGITAL PRINTS`;
-}
-
-// Download Quotation PDF
-function downloadQuotationPDF(){
-  const { jsPDF } = window.jspdf;
-  let doc=new jsPDF();
-  doc.html(document.getElementById("quotationPreview"),{callback:function(pdf){pdf.save("quotation.pdf");},x:5,y:5,width:200});
-}
-
-// INITIAL LOAD
-updateHistory(); updateDashboard();
-function addQuotationItem() {
-  let item = document.getElementById("qItemSelect").value;
-  let qty = Number(document.getElementById("qQty").value);
-  let price = Number(document.getElementById("qUnitPrice").value);
-
-  if (!item || !qty || !price) {
-    Swal.fire("Error", "Please fill all fields", "error");
-    return;
-  }
-
-  let total = qty * price;
-
-  quotationItems.push({ item, qty, price, total });
-
-  renderQuotationPreview();
-
-  // Reset input fields
-  document.getElementById("qQty").value = 1;
-  document.getElementById("qUnitPrice").value = price;
-}
-function renderQuotationPreview() {
-  let html = '';
-  let grandTotal = 0;
-
-  quotationItems.forEach(i => {
-    grandTotal += Number(i.total);
-    html += `<strong>Item:</strong> ${i.item}<br>
-             <strong>Quantity:</strong> ${i.qty} pcs<br>
-             <strong>Unit Price:</strong> ₱${parseFloat(i.price).toFixed(2)}<br>
-             <strong>Total Amount:</strong> ₱${parseFloat(i.total).toFixed(2)}<br><br>`;
-  });
-
-  html += `Notes:<br>
-           • Price includes customization.<br>
-           • At least 50% downpayment required.<br>
-           • Remaining balance upon delivery.<br><br>
-           Sincerely,<br>
-           JKM PRIME DIGITAL PRINTS`;
-
-  document.getElementById("quotationText").innerHTML = html;
-}
-function downloadQuotationImage() {
-  const quotationEl = document.getElementById("quotationPreview");
-
-  // Use html2canvas
-  html2canvas(quotationEl, {
-    scale: 2, // higher resolution
-    useCORS: true,
-    scrollY: -window.scrollY
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png"); // PNG format
-    link.download = "quotation.png";
-    link.click();
-    Swal.fire("Success", "Quotation downloaded as image!", "success");
-  }).catch(err => {
-    console.error(err);
-    Swal.fire("Error", "Failed to download quotation as image", "error");
-  });
-}
-function deductInventoryFromReceipt(items) {
-  items.forEach(item => {
-
-    let query = firebase.database().ref("inventory")
-      .orderByChild("name")
-      .equalTo(item.name);
-
-    query.once("value", snap => {
-      snap.forEach(child => {
-        let currentQty = child.val().qty;
-
-        firebase.database().ref("inventory/" + child.key).update({
-          qty: currentQty - item.qty
-        });
-
-      });
-    });
-
-  });
-}
-function openTracker(e){
-  e.preventDefault();
-  window.location.href = "tracking.html";
-}
-function downloadReceiptImage() {
-  const receiptEl = document.getElementById("receiptPreview");
-
-  html2canvas(receiptEl, {
-    scale: 2,          // better quality
-    useCORS: true,
-    scrollY: -window.scrollY
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = `receipt-${document.getElementById("rNoPrint").innerText}.png`;
-    link.click();
-
-    Swal.fire("Success", "Receipt downloaded as image!", "success");
-  }).catch(err => {
-    console.error(err);
-    Swal.fire("Error", "Failed to download receipt image", "error");
-  });
-}
-html2canvas(receiptEl, {
-  scale: 2,
-  useCORS: true,
-  backgroundColor: "#ffffff"
-})
+//=================== INITIAL LOAD ===================
+fetchReceiptsFromFirebase();
+updateDashboard();
 </script>
 </body>
 </html>
