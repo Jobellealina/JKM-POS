@@ -612,7 +612,7 @@ function saveReceiptToFirebase(receipt){
   const ref = db.ref('receipts');
   const newRef = ref.push();
 
-  return newRef.set(receipt).then(() => true);
+  return newRef.set(receipt)
     .then(() => {
       console.log("✅ SAVED TO FIREBASE:", receipt.rno);
       return true;
