@@ -708,7 +708,7 @@ function updateHistory(filterFn){
       <td>${r.paymentType}</td>
       <td>
         <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+        <button class="btn btn-sm btn-red" onclick="deleteReceipt('${r.rno}')">✖</button>
       </td>
     </tr>`;
   });
@@ -758,15 +758,28 @@ function editReceipt(idx){
 }
 
 // Delete Receipt
-function deleteReceipt(idx){
-  Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
+function deleteReceipt(rno){
+  Swal.fire({
+    title: "Delete?",
+    text: "Are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes"
+  }).then(res => {
     if(res.isConfirmed){
-      const rno = receiptHistory[idx].rno;
-      deleteReceiptFromFirebase(rno); // remove from Firebase
-      receiptHistory.splice(idx,1);
-      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
-      updateHistory(); updateDashboard();
-      Swal.fire("Deleted","Receipt removed","success");
+
+      // delete from Firebase first
+      deleteReceiptFromFirebase(rno);
+
+      // remove from local array
+      receiptHistory = receiptHistory.filter(r => r.rno !== rno);
+
+      localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+
+      updateHistory();
+      updateDashboard();
+
+      Swal.fire("Deleted", "Receipt removed", "success");
     }
   });
 }
