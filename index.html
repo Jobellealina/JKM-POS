@@ -588,7 +588,7 @@ function saveReceipt() {
   // Prepare receipt object
   const receipt = {
     rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toLocaleDateString(),
+    date: new Date().toISOString(),
     shipTo: document.getElementById("custName").value || "-",
     address: document.getElementById("custAddress").value || "-",
     total: total,
@@ -817,15 +817,28 @@ function exportToPDF() {
 }
 // Apply Filters
 function applyFilters(){
-  let from=document.getElementById("fromDate").value;
-  let to=document.getElementById("toDate").value;
-  let search=document.getElementById("searchInput").value.toLowerCase();
-  updateHistory(r=>{
-    let d=new Date(r.date); let validDate=true;
-    if(from) validDate=d>=new Date(from);
-    if(to) validDate=validDate&&d<=new Date(to);
-    let validSearch=!search||r.shipTo.toLowerCase().includes(search)||r.rno.toLowerCase().includes(search);
-    return validDate&&validSearch;
+  let from = document.getElementById("fromDate").value;
+  let to = document.getElementById("toDate").value;
+  let search = document.getElementById("searchInput").value.toLowerCase();
+
+  updateHistory(r => {
+    let d = new Date(r.date);
+
+    let validDate = true;
+
+    if (from) validDate = d >= new Date(from);
+    if (to) {
+      let toDate = new Date(to);
+      toDate.setHours(23,59,59,999);
+      validDate = validDate && d <= toDate;
+    }
+
+    let validSearch =
+      !search ||
+      r.shipTo.toLowerCase().includes(search) ||
+      r.rno.toLowerCase().includes(search);
+
+    return validDate && validSearch;
   });
 }
 
