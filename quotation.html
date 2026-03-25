@@ -3,29 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quotation Preview - JKM Prime Digital Prints</title>
+<title>Quotation - JKM Prime Digital Prints</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
 <style>
 body{ background:#eef2f7; font-family:Segoe UI; padding:20px; }
-.card{ background:white; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.1); max-width:800px; margin:auto; }
+.card{ background:white; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.1); max-width:900px; margin:auto; }
 .q-title{ font-weight:bold; font-size:22px; }
-.q-header{ border-bottom:2px solid #ddd; margin-bottom:15px; padding-bottom:10px; }
 .total{ text-align:right; font-weight:bold; font-size:18px; margin-top:10px; }
 table{ width:100%; border-collapse:collapse; margin-top:10px; }
-th,td{ border:1px solid #ddd; padding:8px; text-align:left; }
+th,td{ border:1px solid #ddd; padding:8px; }
+input{ width:100%; }
 </style>
 </head>
+
 <body>
 
 <div class="card">
-<div class="q-header">
+
 <div class="q-title">JKM PRIME DIGITAL PRINTS</div>
-<div>Quotation</div>
+<hr>
+
+<div class="row">
+<div class="col">
+<label>Date</label>
+<input type="date" id="date" class="form-control">
 </div>
 
-<p>Date: <span id="qDate"></span></p>
-<p>Customer: <span id="qCustomer"></span></p>
+<div class="col">
+<label>Customer</label>
+<input type="text" id="customer" class="form-control">
+</div>
+</div>
 
+<!-- ITEMS -->
 <table>
 <thead>
 <tr>
@@ -33,38 +44,87 @@ th,td{ border:1px solid #ddd; padding:8px; text-align:left; }
 <th>Qty</th>
 <th>Unit Price</th>
 <th>Total</th>
+<th></th>
 </tr>
 </thead>
-<tbody id="qItems"></tbody>
+
+<tbody id="items"></tbody>
 </table>
 
-<div class="total">Total Amount: <span id="qGrand"></span></div>
+<button class="btn btn-primary mt-2" onclick="addItem()">+ Add Item</button>
 
-<p id="qNotes"></p>
+<div class="total mt-3">
+Grand Total: ₱ <span id="grandTotal">0.00</span>
+</div>
 
-<button class="btn btn-success" onclick="window.print()">Print</button>
+<hr>
+
+<p>
+• At least 50% downpayment is required to confirm the order and start production.<br>
+• Remaining balance must be settled upon delivery/pick-up.
+</p>
+
+<button class="btn btn-success" onclick="saveAndPreview()">Preview / Print</button>
+
 </div>
 
 <script>
-let quotation=JSON.parse(localStorage.getItem("currentQuotation")||"null");
-if(quotation){
-    document.getElementById("qDate").innerText=quotation.date;
-    document.getElementById("qCustomer").innerText=quotation.customer;
-    const tbody=document.getElementById("qItems");
-    quotation.items.forEach(item=>{
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td>${item.name}</td>
-<td>${item.qty}</td>
-<td>₱${item.price.toFixed(2)}</td>
-<td>₱${(item.qty*item.price).toFixed(2)}</td>`;
-        tbody.appendChild(tr);
-    });
-    document.getElementById("qGrand").innerText="₱"+quotation.total.toFixed(2);
-    // Fixed notes
-    document.getElementById("qNotes").innerText="• At least 50% downpayment is required to confirm the order and start production.\n• Remaining balance must be settled upon delivery/pick-up.";
-}else{
-    alert("No quotation found!");
+function addItem(name="", qty=1, price=0){
+    const row=document.createElement("tr");
+
+    row.innerHTML=`
+    <td><input value="${name}" oninput="compute()"></td>
+    <td><input type="number" value="${qty}" oninput="compute()"></td>
+    <td><input type="number" value="${price}" oninput="compute()"></td>
+    <td class="itemTotal">0.00</td>
+    <td><button onclick="this.closest('tr').remove();compute()">X</button></td>
+    `;
+
+    document.getElementById("items").appendChild(row);
+    compute();
 }
+
+function compute(){
+    let grand=0;
+
+    document.querySelectorAll("#items tr").forEach(row=>{
+        let qty=row.children[1].children[0].value;
+        let price=row.children[2].children[0].value;
+
+        let total=qty*price;
+        row.children[3].innerText=total.toFixed(2);
+
+        grand+=total;
+    });
+
+    document.getElementById("grandTotal").innerText=grand.toFixed(2);
+}
+
+function saveAndPreview(){
+    let items=[];
+
+    document.querySelectorAll("#items tr").forEach(row=>{
+        items.push({
+            name: row.children[0].children[0].value,
+            qty: parseFloat(row.children[1].children[0].value),
+            price: parseFloat(row.children[2].children[0].value)
+        });
+    });
+
+    let quotation={
+        date: document.getElementById("date").value,
+        customer: document.getElementById("customer").value,
+        items: items,
+        total: parseFloat(document.getElementById("grandTotal").innerText)
+    };
+
+    localStorage.setItem("currentQuotation", JSON.stringify(quotation));
+
+    window.open("preview.html","_blank");
+}
+
+// default one row
+addItem();
 </script>
 
 </body>

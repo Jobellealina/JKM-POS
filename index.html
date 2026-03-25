@@ -12,6 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.21.0/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -59,6 +60,13 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 .modal-left .modal-footer{display:flex; justify-content:flex-start; gap:10px; padding:5px;}
 .modal-left {padding:10px;}
 .modal-left h5 {margin-bottom:10px; font-size:16px; text-align:left;}
+#quotationPreview table td,
+#quotationPreview table th {
+  text-align: left !important;
+}
+#quotationPreview table th {
+  color: #1e40af;
+}
 </style>
 </head>
 <body>
@@ -261,10 +269,12 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <select id="qItemSelect" class="form-select mb-1"></select>
 <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
 <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
-<div class="mt-2 d-flex gap-1 flex-wrap">
-  <button class="btn btn-success btn-professional" onclick="addQuotationItem()">Add Item</button><br><br>
-<button class="btn btn-blue btn-professional" onclick="generateQuotation()">Generate</button>
-<button class="btn btn-danger btn-professional" onclick="downloadQuotationImage()">Download</button>
+<div class="mt-2 d-flex gap-2 flex-wrap">
+  <button class="btn btn-success btn-professional" onclick="addQuotationItem()">Add</button>
+  <button class="btn btn-warning btn-professional" onclick="removeLastItem()">Undo</button>
+  <button class="btn btn-danger btn-professional" onclick="clearQuotation()">Clear</button>
+  <button class="btn btn-primary btn-professional" onclick="generateQuotation()">Generate</button>
+  <button class="btn btn-danger btn-professional" onclick="downloadQuotationImage()">Image</button>
 </div>
 </div>
 </div>
@@ -279,7 +289,26 @@ Quotation for Order
 <br>
 <p>Date: <span id="qDatePrint"></span></p>
 <p>To: <span id="qNamePrint"></span></p>
-<p id="quotationText"></p>
+<div style="overflow-x:auto;">
+<table class="table table-sm">
+<thead>
+<tr>
+<th>Item</th>
+<th>Qty</th>
+<th>Unit Price</th>
+<th>Total</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="quotationTable"></tbody>
+</table>
+</div>
+
+<div class="text-end">
+<strong>Total: ₱ <span id="quotationGrandTotal">0.00</span></strong>
+</div>
+
+<p id="quotationNotes"></p>
 </div>
 </div>
 </div>
@@ -295,6 +324,12 @@ Quotation for Order
 <script>
 //=================== FULL JS UPDATED ===================
 let quotationItems = [];
+
+document.getElementById("qItemSelect").addEventListener("change", function(){
+  let price = this.selectedOptions[0].dataset.price || 0;
+  document.getElementById("qUnitPrice").value = price;
+});
+
 // Firebase Config
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -362,6 +397,25 @@ let services = {
   "Customized Ref Magnets":[
     {name:"ATM size",price:25},
     {name:"3x3",price:45}
+  ],
+
+  "Customized Totebag":[
+    {name:"Flat Type - Xsmall 8x10",price:149},
+    {name:"Flat Type - Small 10x12",price:159},
+    {name:"Flat Type - Medium 12x14",price:169},
+    {name:"Flat Type - Large 13.5x16",price:179},
+    {name:"Flat with Base - Xsmall 8x10x4",price:159},
+    {name:"Flat with Base - Small 10x12 x4",price:169},
+    {name:"Flat with Base - Medium 12x14 x4",price:179},
+    {name:"Flat with Base - Large 13.5x16 x4",price:189},
+  ],
+
+  "Customized Wallet":[
+    {name:"Xsmall 4x3",price:59},
+    {name:"Small 5x4",price:69},
+    {name:"Medium 6x5",price:79},
+    {name:"Large 8x6",price:89},
+    
   ],
 
   "Others":[
@@ -830,23 +884,51 @@ if (lastMonth != today.getMonth()) {
   localStorage.setItem("lastMonth", today.getMonth());
 }
 // Quotation
-function generateQuotation(){
-  let custName=document.getElementById("qCustName").value;
-  let item=document.getElementById("qItemSelect").value;
-  let qty=document.getElementById("qQty").value;
-  let unitPrice=document.getElementById("qUnitPrice").value;
-  if(!custName||!item||!qty||!unitPrice){Swal.fire("Error","Please fill all fields","error");return;}
-  let totalAmount=qty*unitPrice;
-  let today=new Date();
-  document.getElementById("qDatePrint").innerText=today.toLocaleDateString();
-  document.getElementById("qNamePrint").innerText=custName;
-  document.getElementById("quotationText").innerHTML=`<strong>Item:</strong> ${item}<br>
-  <strong>Quantity:</strong> ${qty} pcs<br>
-  <strong>Unit Price:</strong> ₱${parseFloat(unitPrice).toFixed(2)}<br>
-  <strong>Total Amount:</strong> ₱${parseFloat(totalAmount).toFixed(2)}<br><br>
-  Notes: <br>• Price includes customization.<br>• At least 50% downpayment required.<br>• Remaining balance upon delivery.<br><br> Sincerely, <br> JKM PRIME DIGITAL PRINTS`;
-}
+function generateQuotation() {
+  let custName = document.getElementById("qCustName").value;
 
+  if (!custName) {
+    Swal.fire("Error", "Enter customer name", "error");
+    return;
+  }
+
+  if (quotationItems.length === 0) {
+    Swal.fire("Error", "Add items first", "error");
+    return;
+  }
+
+  document.getElementById("qDatePrint").innerText = new Date().toLocaleDateString();
+  document.getElementById("qNamePrint").innerText = custName;
+
+  document.getElementById("quotationNotes").innerHTML = `
+    <br>
+    Thank you for choosing <strong>JKM PRIME DIGITAL PRINTS</strong>.<br>
+
+    This quotation includes the items listed above.<br><br>
+
+    <strong>Terms & Conditions:</strong><br>
+    • 50% downpayment required to confirm order<br>
+    • Remaining balance upon delivery/pick-up<br>
+    • Production starts after downpayment<br><br>
+
+    Sincerely,<br><br>
+    <strong>JKM PRIME DIGITAL PRINTS</strong>
+  `;
+}
+// DOWNLOAD QUOTATION AS IMAGE
+function downloadQuotationImage() {
+  let element = document.getElementById("quotationPreview");
+
+  html2canvas(element, {
+    scale: 2, // high quality
+    useCORS: true
+  }).then(canvas => {
+    let link = document.createElement("a");
+    link.download = "JKM-Quotation.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+}
 // Download Quotation PDF
 function downloadQuotationPDF(){
   const { jsPDF } = window.jspdf;
@@ -861,41 +943,61 @@ function addQuotationItem() {
   let qty = Number(document.getElementById("qQty").value);
   let price = Number(document.getElementById("qUnitPrice").value);
 
-  if (!item || !qty || !price) {
-    Swal.fire("Error", "Please fill all fields", "error");
+  if (!item || qty <= 0 || price <= 0) {
+    Swal.fire("Error", "Please complete all fields", "error");
     return;
   }
 
-  let total = qty * price;
-
-  quotationItems.push({ item, qty, price, total });
+  quotationItems.push({ item, qty, price });
 
   renderQuotationPreview();
 
-  // Reset input fields
+  // reset qty only
   document.getElementById("qQty").value = 1;
-  document.getElementById("qUnitPrice").value = price;
 }
 function renderQuotationPreview() {
-  let html = '';
+  let tbody = document.getElementById("quotationTable");
   let grandTotal = 0;
 
-  quotationItems.forEach(i => {
-    grandTotal += Number(i.total);
-    html += `<strong>Item:</strong> ${i.item}<br>
-             <strong>Quantity:</strong> ${i.qty} pcs<br>
-             <strong>Unit Price:</strong> ₱${parseFloat(i.price).toFixed(2)}<br>
-             <strong>Total Amount:</strong> ₱${parseFloat(i.total).toFixed(2)}<br><br>`;
+  tbody.innerHTML = "";
+
+  quotationItems.forEach((item) => {
+    let total = item.qty * item.price;
+    grandTotal += total;
+
+    let row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.item}</td>
+      <td>${item.qty}</td>
+      <td>₱${item.price.toFixed(2)}</td>
+      <td>₱${total.toFixed(2)}</td>
+    `;
+    tbody.appendChild(row);
   });
 
-  html += `Notes:<br>
-           • Price includes customization.<br>
-           • At least 50% downpayment required.<br>
-           • Remaining balance upon delivery.<br><br>
-           Sincerely,<br>
-           JKM PRIME DIGITAL PRINTS`;
+  document.getElementById("quotationGrandTotal").innerText = grandTotal.toFixed(2);
+}
 
-  document.getElementById("quotationText").innerHTML = html;
+function removeLastItem() {
+  if (quotationItems.length === 0) return;
+
+  quotationItems.pop();
+  renderQuotationPreview();
+}
+
+function clearQuotation() {
+  quotationItems = [];
+  renderQuotationPreview();
+
+  document.getElementById("qCustName").value = "";
+  document.getElementById("quotationNotes").innerHTML = "";
+  document.getElementById("qDatePrint").innerText = "";
+  document.getElementById("qNamePrint").innerText = "";
+}
+
+function removeQuotationItem(index){
+  quotationItems.splice(index,1);
+  renderQuotationPreview();
 }
 function downloadQuotationImage() {
   const quotationEl = document.getElementById("quotationPreview");
