@@ -638,11 +638,19 @@ function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
 function printReceipt(){window.print();}
 
 function updateHistory(filterFn){
-  const el=document.getElementById("receiptHistory"); el.innerHTML="";
-  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
-  data.forEach((r,i)=>{
-    el.innerHTML+=`<tr>
-      <td>${i+1}</td>
+  const el = document.getElementById("receiptHistory");
+  el.innerHTML = "";
+
+  let data = receiptHistory
+    .map((r, idx) => ({ r, idx }))   // 👈 keep original index
+    .filter(x => filterFn ? filterFn(x.r) : true);
+
+  data.forEach((x, i) => {
+    const r = x.r;
+    const idx = x.idx;
+
+    el.innerHTML += `<tr>
+      <td>${i + 1}</td>
       <td>${r.rno}</td>
       <td>${r.date}</td>
       <td>${r.shipTo}</td>
@@ -650,8 +658,8 @@ function updateHistory(filterFn){
       <td>₱${Math.round(r.profit)}</td>
       <td>${r.paymentType}</td>
       <td>
-        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+        <button class="btn btn-sm btn-blue" onclick="editReceipt(${idx})">🖊️</button>
+        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${idx})">✖</button>
       </td>
     </tr>`;
   });
