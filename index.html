@@ -643,10 +643,27 @@ function updateHistory(filterFn){
 
   el.innerHTML = "";
 
-  let data = Array.isArray(receiptHistory) ? receiptHistory : [];
+  if(!Array.isArray(receiptHistory)){
+    console.log("receiptHistory not ready");
+    return;
+  }
 
-  if(filterFn){
-    data = data.filter(r => filterFn(r));
+  let data = receiptHistory;
+
+  try {
+    if(filterFn){
+      data = data.filter(r => {
+        try {
+          return filterFn(r);
+        } catch(e){
+          console.log("filter error:", e);
+          return false;
+        }
+      });
+    }
+  } catch(e){
+    console.log("filter crash:", e);
+    data = receiptHistory;
   }
 
   if(data.length === 0){
@@ -655,21 +672,25 @@ function updateHistory(filterFn){
   }
 
   data.forEach((r, i) => {
-    el.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${r.rno || ""}</td>
-        <td>${r.date ? new Date(r.date).toLocaleDateString() : ""}</td>
-        <td>${r.shipTo || ""}</td>
-        <td>₱${Math.round(r.total || 0)}</td>
-        <td>₱${Math.round(r.profit || 0)}</td>
-        <td>${r.paymentType || ""}</td>
-        <td>
-          <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-          <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
-        </td>
-      </tr>
-    `;
+    try {
+      el.innerHTML += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${r.rno || ""}</td>
+          <td>${r.date ? new Date(r.date).toLocaleDateString() : ""}</td>
+          <td>${r.shipTo || ""}</td>
+          <td>₱${Math.round(r.total || 0)}</td>
+          <td>₱${Math.round(r.profit || 0)}</td>
+          <td>${r.paymentType || ""}</td>
+          <td>
+            <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
+            <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+          </td>
+        </tr>
+      `;
+    } catch(e){
+      console.log("row render error:", e, r);
+    }
   });
 }
 
