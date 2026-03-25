@@ -643,22 +643,10 @@ function updateHistory(filterFn){
 
   el.innerHTML = "";
 
-  if(!Array.isArray(receiptHistory)){
-    console.log("receiptHistory not ready");
-    return;
-  }
-
-  let data = receiptHistory;
+  let data = Array.isArray(receiptHistory) ? receiptHistory : [];
 
   if(filterFn){
-    data = data.filter(r => {
-      try {
-        return filterFn(r);
-      } catch(e){
-        console.log("filter error:", e);
-        return false;
-      }
-    });
+    data = data.filter(r => filterFn(r));
   }
 
   if(data.length === 0){
@@ -671,12 +659,15 @@ function updateHistory(filterFn){
       <tr>
         <td>${i+1}</td>
         <td>${r.rno || ""}</td>
-        <td>${r.date || ""}</td>
+        <td>${r.date ? new Date(r.date).toLocaleDateString() : ""}</td>
         <td>${r.shipTo || ""}</td>
-        <td>${r.total || 0}</td>
-        <td>${r.profit || 0}</td>
+        <td>₱${Math.round(r.total || 0)}</td>
+        <td>₱${Math.round(r.profit || 0)}</td>
         <td>${r.paymentType || ""}</td>
-        <td></td>
+        <td>
+          <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
+          <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+        </td>
       </tr>
     `;
   });
