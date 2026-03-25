@@ -17,11 +17,6 @@ body{
     background:#ffe4e6;
 }
 
-#viewModal thead th{
-    background:#0b2a5b;
-    color:white;
-}
-
 .headerBox{
     background: linear-gradient(90deg, #071a3a, #0b2a5b);
     color:white;
@@ -32,12 +27,6 @@ body{
     align-items:center;
     gap:15px;
     flex-wrap:wrap;
-}
-
-.headerBox img{
-    height:60px;
-    border-radius:15px;
-    transition: transform .3s;
 }
 
 .card{
@@ -51,13 +40,8 @@ body{
     color:white;
 }
 
-.low{
-    background:#ffd6d6 !important;
-}
-
-.critical{
-    background:#ffb3b3 !important;
-}
+.low{ background:#ffd6d6 !important; }
+.critical{ background:#ffb3b3 !important; }
 
 </style>
 </head>
@@ -90,7 +74,7 @@ Total Items
 
 <div class="col-md-4">
 <div class="card p-3 text-center">
-Low Stock (≤2 packs)
+Low Stock
 <h3 id="lowStock">0</h3>
 </div>
 </div>
@@ -177,17 +161,17 @@ Total Value
 
 <input type="hidden" id="editId">
 
-<input id="editName" class="form-control mb-2" placeholder="Name">
+<input id="editName" class="form-control mb-2" placeholder="Product Name">
 
-<!-- PACKS CONTROL -->
-<div class="input-group mb-2">
-<button class="btn btn-danger" type="button" onclick="changePack(-1)">-</button>
-<input id="editPacks" type="number" class="form-control text-center" placeholder="Packs">
-<button class="btn btn-success" type="button" onclick="changePack(1)">+</button>
-</div>
+<input id="editPacks" type="number" class="form-control mb-2" placeholder="Packs">
 
 <input id="editQtyPerPack" type="number" class="form-control mb-2" placeholder="Qty per Pack">
+
 <input id="editPricePerPack" type="number" class="form-control mb-2" placeholder="Price per Pack">
+
+<hr>
+
+<input id="usedQty" type="number" class="form-control mb-2" placeholder="Used Quantity (Deduct from Qty/Pack)">
 
 </div>
 
@@ -215,7 +199,6 @@ const db = firebase.database().ref("inventory");
 
 let dataCache = {};
 
-/* BACK */
 function goBack(){
     window.location.href="index.html";
 }
@@ -272,9 +255,7 @@ function render(){
 
         if(packs <= 2) low++;
 
-        let rowClass = "";
-        if(packs <= 2) rowClass = "critical";
-        else if(packs <= 5) rowClass = "low";
+        let rowClass = packs <= 2 ? "critical" : (packs <= 5 ? "low" : "");
 
         html += `
         <tr class="${rowClass}">
@@ -308,23 +289,17 @@ function openEdit(id){
     document.getElementById("editQtyPerPack").value = p.qtyPerPack;
     document.getElementById("editPricePerPack").value = p.pricePerPack;
 
+    document.getElementById("usedQty").value = "";
+
+    document.getElementById("editName").placeholder = p.name;
+    document.getElementById("editPacks").placeholder = p.packs;
+    document.getElementById("editQtyPerPack").placeholder = p.qtyPerPack;
+    document.getElementById("editPricePerPack").placeholder = p.pricePerPack;
+
     new bootstrap.Modal(document.getElementById("editModal")).show();
 }
 
-/* CHANGE PACKS (+/- inside modal) */
-function changePack(val){
-
-    let input = document.getElementById("editPacks");
-    let current = Number(input.value) || 0;
-
-    current += val;
-
-    if(current < 0) current = 0;
-
-    input.value = current;
-}
-
-/* UPDATE */
+/* UPDATE - DEDUCT QUANTITY ONLY */
 function updateItem(){
 
     let id = document.getElementById("editId").value;
@@ -334,12 +309,19 @@ function updateItem(){
     let qtyPerPack = Number(document.getElementById("editQtyPerPack").value);
     let pricePerPack = Number(document.getElementById("editPricePerPack").value);
 
+    let usedQty = Number(document.getElementById("usedQty").value) || 0;
+
+    let currentQty = dataCache[id].qtyPerPack || 0;
+    let newQty = currentQty - usedQty;
+
+    if(newQty < 0) newQty = 0;
+
     if(!name || isNaN(packs) || isNaN(qtyPerPack) || isNaN(pricePerPack)) return;
 
     db.child(id).update({
         name,
         packs,
-        qtyPerPack,
+        qtyPerPack: newQty,
         pricePerPack
     });
 
