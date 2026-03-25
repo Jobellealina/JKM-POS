@@ -407,7 +407,7 @@ let services = {
     {name:"Flat w/Base - XS 8x10",price:159},
     {name:"Flat w/Base - S 10x12",price:169},
     {name:"Flat w/Base - M 12x14",price:179},
-    {name:"Flat w/Base - L13.5x16",price:189},
+    {name:"Flat w/Base - L 13.5x16",price:189},
   ],
 
   "Customized Wallet":[
@@ -569,15 +569,10 @@ function deleteReceiptFromFirebase(rno){
 
 function fetchReceiptsFromFirebase(){
   const ref = db.ref('receipts');
-
   ref.on('value', snapshot=>{
     const data = snapshot.val() || {};
-
-    receiptHistory = Object.entries(data).map(([key, val]) => ({
-      ...val,
-      _key: key
-    }));
-
+    receiptHistory = Object.values(data);
+    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
     updateHistory();
     updateDashboard();
   });
@@ -593,7 +588,7 @@ function saveReceipt() {
   // Prepare receipt object
   const receipt = {
     rno: document.getElementById("rNoPrint").innerText,
-    date: new Date().toISOString(),
+    date: new Date().toLocaleDateString(),
     shipTo: document.getElementById("custName").value || "-",
     address: document.getElementById("custAddress").value || "-",
     total: total,
@@ -643,27 +638,22 @@ function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
 function printReceipt(){window.print();}
 
 function updateHistory(filterFn){
-  const el = document.getElementById("receiptHistory");
-  el.innerHTML = "";
-
-  let data = receiptHistory
-    .filter(r => filterFn ? filterFn(r) : true);
-
-  data.forEach((r, i) => {
-    el.innerHTML += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${r.rno}</td>
-        <td>${new Date(r.date).toLocaleDateString()}</td>
-        <td>${r.shipTo}</td>
-        <td>₱${Math.round(r.total)}</td>
-        <td>₱${Math.round(r.profit)}</td>
-        <td>${r.paymentType}</td>
-        <td>
-          <button onclick="editReceiptByKey('${r._key}')">🖊️</button>
-          <button onclick="deleteReceiptByKey('${r._key}')">✖</button>
-        </td>
-      </tr>`;
+  const el=document.getElementById("receiptHistory"); el.innerHTML="";
+  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
+  data.forEach((r,i)=>{
+    el.innerHTML+=`<tr>
+      <td>${i+1}</td>
+      <td>${r.rno}</td>
+      <td>${r.date}</td>
+      <td>${r.shipTo}</td>
+      <td>₱${Math.round(r.total)}</td>
+      <td>₱${Math.round(r.profit)}</td>
+      <td>${r.paymentType}</td>
+      <td>
+        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
+        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
+      </td>
+    </tr>`;
   });
 }
 
@@ -703,6 +693,7 @@ function editReceipt(idx){
       receiptHistory[idx].paymentMethod=res.value.paymentMethod;
       receiptHistory[idx].paymentType=res.value.paymentType;
       receiptHistory[idx].downpayment=res.value.downpayment;
+      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
       updateHistory(); updateDashboard();
       Swal.fire("Updated","Receipt updated","success");
     }
@@ -710,17 +701,14 @@ function editReceipt(idx){
 }
 
 // Delete Receipt
-function deleteReceipt(key){
-  Swal.fire({
-    title:"Delete?",
-    text:"Are you sure?",
-    icon:"warning",
-    showCancelButton:true,
-    confirmButtonText:"Yes"
-  }).then(res=>{
+function deleteReceipt(idx){
+  Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
     if(res.isConfirmed){
-      db.ref('receipts/' + key).remove();
-
+      const rno = receiptHistory[idx].rno;
+      deleteReceiptFromFirebase(rno); // remove from Firebase
+      receiptHistory.splice(idx,1);
+      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
+      updateHistory(); updateDashboard();
       Swal.fire("Deleted","Receipt removed","success");
     }
   });
@@ -821,28 +809,15 @@ function exportToPDF() {
 }
 // Apply Filters
 function applyFilters(){
-  let from = document.getElementById("fromDate").value;
-  let to = document.getElementById("toDate").value;
-  let search = document.getElementById("searchInput").value.toLowerCase();
-
-  updateHistory(r => {
-    let d = new Date(r.date);
-
-    let validDate = true;
-
-    if (from) validDate = d >= new Date(from);
-    if (to) {
-      let toDate = new Date(to);
-      toDate.setHours(23,59,59,999);
-      validDate = validDate && d <= toDate;
-    }
-
-    let validSearch =
-      !search ||
-      r.shipTo.toLowerCase().includes(search) ||
-      r.rno.toLowerCase().includes(search);
-
-    return validDate && validSearch;
+  let from=document.getElementById("fromDate").value;
+  let to=document.getElementById("toDate").value;
+  let search=document.getElementById("searchInput").value.toLowerCase();
+  updateHistory(r=>{
+    let d=new Date(r.date); let validDate=true;
+    if(from) validDate=d>=new Date(from);
+    if(to) validDate=validDate&&d<=new Date(to);
+    let validSearch=!search||r.shipTo.toLowerCase().includes(search)||r.rno.toLowerCase().includes(search);
+    return validDate&&validSearch;
   });
 }
 
@@ -854,7 +829,7 @@ function updateDashboard(){
   let currentMonth = today.getMonth() + 1;
 
   receiptHistory.forEach(r => {
-    let rDate = new Date().toLocaleDateString();
+    let rDate = new Date(r.date);
     let rMonth = rDate.getMonth() + 1;
     let rTotal = Number(r.total) || 0;
     let rProfit = rTotal * 0.45; // your existing profit calculation
