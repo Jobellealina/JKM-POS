@@ -638,22 +638,47 @@ function toggleDark(){document.body.classList.toggle("dark");updateDashboard();}
 function printReceipt(){window.print();}
 
 function updateHistory(filterFn){
-  const el=document.getElementById("receiptHistory"); el.innerHTML="";
-  let data=filterFn?receiptHistory.filter(filterFn):receiptHistory;
-  data.forEach((r,i)=>{
-    el.innerHTML+=`<tr>
-      <td>${i+1}</td>
-      <td>${r.rno}</td>
-      <td>${r.date}</td>
-      <td>${r.shipTo}</td>
-      <td>₱${Math.round(r.total)}</td>
-      <td>₱${Math.round(r.profit)}</td>
-      <td>${r.paymentType}</td>
-      <td>
-        <button class="btn btn-sm btn-blue" onclick="editReceipt(${i})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${i})">✖</button>
-      </td>
-    </tr>`;
+  const el = document.getElementById("receiptHistory");
+  if(!el) return;
+
+  el.innerHTML = "";
+
+  if(!Array.isArray(receiptHistory)){
+    console.log("receiptHistory not ready");
+    return;
+  }
+
+  let data = receiptHistory;
+
+  if(filterFn){
+    data = data.filter(r => {
+      try {
+        return filterFn(r);
+      } catch(e){
+        console.log("filter error:", e);
+        return false;
+      }
+    });
+  }
+
+  if(data.length === 0){
+    el.innerHTML = `<tr><td colspan="8">No records found</td></tr>`;
+    return;
+  }
+
+  data.forEach((r, i) => {
+    el.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${r.rno || ""}</td>
+        <td>${r.date || ""}</td>
+        <td>${r.shipTo || ""}</td>
+        <td>${r.total || 0}</td>
+        <td>${r.profit || 0}</td>
+        <td>${r.paymentType || ""}</td>
+        <td></td>
+      </tr>
+    `;
   });
 }
 
