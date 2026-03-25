@@ -569,10 +569,15 @@ function deleteReceiptFromFirebase(rno){
 
 function fetchReceiptsFromFirebase(){
   const ref = db.ref('receipts');
+
   ref.on('value', snapshot=>{
     const data = snapshot.val() || {};
-    receiptHistory = Object.values(data);
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
+
+    receiptHistory = Object.entries(data).map(([key, val]) => ({
+      ...val,
+      _key: key
+    }));
+
     updateHistory();
     updateDashboard();
   });
@@ -642,26 +647,23 @@ function updateHistory(filterFn){
   el.innerHTML = "";
 
   let data = receiptHistory
-    .map((r, idx) => ({ r, idx }))   // 👈 keep original index
-    .filter(x => filterFn ? filterFn(x.r) : true);
+    .filter(r => filterFn ? filterFn(r) : true);
 
-  data.forEach((x, i) => {
-    const r = x.r;
-    const idx = x.idx;
-
-    el.innerHTML += `<tr>
-      <td>${i + 1}</td>
-      <td>${r.rno}</td>
-      <td>${r.date}</td>
-      <td>${r.shipTo}</td>
-      <td>₱${Math.round(r.total)}</td>
-      <td>₱${Math.round(r.profit)}</td>
-      <td>${r.paymentType}</td>
-      <td>
-        <button class="btn btn-sm btn-blue" onclick="editReceipt(${idx})">🖊️</button>
-        <button class="btn btn-sm btn-red" onclick="deleteReceipt(${idx})">✖</button>
-      </td>
-    </tr>`;
+  data.forEach((r, i) => {
+    el.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${r.rno}</td>
+        <td>${new Date(r.date).toLocaleDateString()}</td>
+        <td>${r.shipTo}</td>
+        <td>₱${Math.round(r.total)}</td>
+        <td>₱${Math.round(r.profit)}</td>
+        <td>${r.paymentType}</td>
+        <td>
+          <button onclick="editReceiptByKey('${r._key}')">🖊️</button>
+          <button onclick="deleteReceiptByKey('${r._key}')">✖</button>
+        </td>
+      </tr>`;
   });
 }
 
@@ -701,7 +703,6 @@ function editReceipt(idx){
       receiptHistory[idx].paymentMethod=res.value.paymentMethod;
       receiptHistory[idx].paymentType=res.value.paymentType;
       receiptHistory[idx].downpayment=res.value.downpayment;
-      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
       updateHistory(); updateDashboard();
       Swal.fire("Updated","Receipt updated","success");
     }
@@ -709,14 +710,17 @@ function editReceipt(idx){
 }
 
 // Delete Receipt
-function deleteReceipt(idx){
-  Swal.fire({title:"Delete?",text:"Are you sure?",icon:"warning",showCancelButton:true,confirmButtonText:"Yes"}).then(res=>{
+function deleteReceipt(key){
+  Swal.fire({
+    title:"Delete?",
+    text:"Are you sure?",
+    icon:"warning",
+    showCancelButton:true,
+    confirmButtonText:"Yes"
+  }).then(res=>{
     if(res.isConfirmed){
-      const rno = receiptHistory[idx].rno;
-      deleteReceiptFromFirebase(rno); // remove from Firebase
-      receiptHistory.splice(idx,1);
-      localStorage.setItem("receiptHistory",JSON.stringify(receiptHistory));
-      updateHistory(); updateDashboard();
+      db.ref('receipts/' + key).remove();
+
       Swal.fire("Deleted","Receipt removed","success");
     }
   });
@@ -850,7 +854,7 @@ function updateDashboard(){
   let currentMonth = today.getMonth() + 1;
 
   receiptHistory.forEach(r => {
-    let rDate = new Date(r.date);
+    let rDate = new Date().toLocaleDateString();
     let rMonth = rDate.getMonth() + 1;
     let rTotal = Number(r.total) || 0;
     let rProfit = rTotal * 0.45; // your existing profit calculation
