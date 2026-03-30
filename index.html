@@ -191,20 +191,19 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <div style="overflow-x:auto;">
 <table class="table table-sm" id="previewTable">
 <thead>
-<tr style="border-bottom: 1px solid #b5c6eb; border-top: 1px solid #b5c6eb;"> <!-- dark underline -->
+<tr style="border-bottom: 1px solid #b5c6eb; border-top: 1px solid #b5c6eb;">
   <th>No</th>
   <th>Description</th>
   <th>Qty</th>
   <th>Price</th>
   <th>Amount</th>
-  <th>Total</th>
 </tr>
 </thead>
 <tbody><tr style="height:7px;"></tr></tbody><br>
 <tfoot>
   <tr style="height:25px;"></tr> <!-- small spacing before TOTAL -->
   <tr>
-    <th colspan="5" style="text-align:right;">TOTAL</th>
+    <th colspan="4" style="text-align:right;">TOTAL</th>
     <th id="grandTotal">₱0</th>
   </tr>
 </tfoot>
@@ -514,21 +513,23 @@ function toggleDownpayment(){
 
 // Add Item
 function addItem(){
-  const itemName=document.getElementById("item").value;
-  const qty=Number(document.getElementById("qty").value)||0;
-  const price=Number(document.getElementById("price").value)||0;
-  if(!itemName||qty<=0||price<=0) return;
-  const amount=Math.round(qty*price);
+  const itemName = document.getElementById("item").value;
+  const qty = Number(document.getElementById("qty").value) || 0;
+  const price = Number(document.getElementById("price").value) || 0;
+  if (!itemName || qty <= 0 || price <= 0) return;
+
+  const amount = Math.round(qty * price);
   count++;
-  total+=amount;
-  undoStack.push({itemName,qty,price,amount});
-  let tbody=document.querySelector("#previewTable tbody");
-  let row=tbody.insertRow();
-  row.innerHTML=`<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td><td>₱${total}</td>`;
-  document.getElementById("grandTotal").innerText=`₱${total}`;
+  total += amount; // still keep track of grand total if you want
+  undoStack.push({itemName, qty, price, amount});
+
+  let tbody = document.querySelector("#previewTable tbody");
+  let row = tbody.insertRow();
+  row.innerHTML = `<td>${count}</td><td>${itemName}</td><td>${qty}</td><td>₱${Math.round(price)}</td><td>₱${amount}</td>`;
+
+  document.getElementById("grandTotal").innerText = `₱${total}`;
   updateReceiptHeader();
 }
-
 // Undo Item
 function undoItem(){
   if(!undoStack.length) return;
