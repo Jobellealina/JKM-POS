@@ -12,13 +12,24 @@
 
 <style>
 
-body{
-    font-family: monospace;
-    background:#ffe4e6;
+body {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(
+    135deg,
+    #f9caca,
+    #fab8f6,
+    #f7c8c8,
+    #f7c7fc
+  );
+  color: #111;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  margin: 0;
+  min-height: 100vh;
 }
 
 .headerBox{
-    background: linear-gradient(90deg, #071a3a, #0b2a5b);
+    background: #9e04c4;;
     color:white;
     border-radius:18px;
     padding:20px;
@@ -52,7 +63,7 @@ body{
 
 <!-- HEADER -->
 <div class="headerBox">
-    <img src="logo1.png" style="height:60px" onerror="this.style.display='none'">
+    <img src="logo.png" style="height:60px; border-radius: 12px;;" onerror="this.style.display='none'">
 
     <div>
         <h4 class="m-0">JKM PRIME DIGITAL PRINTS</h4>
@@ -110,7 +121,7 @@ Total Value
 </div>
 
 <div class="col-md-2">
-<button class="btn btn-primary w-100" onclick="addItem()">ADD</button>
+<button class="btn w-100" style="background-color: #9e04c4; color: white;" onclick="addItem()">ADD</button>
 </div>
 
 </div>
@@ -154,7 +165,7 @@ Total Value
 
 <div class="modal-header">
 <h5>Edit Product</h5>
-<button class="btn-close" data-bs-dismiss="modal"></button>
+<button class="btn-close"  data-bs-dismiss="modal"></button>
 </div>
 
 <div class="modal-body">
@@ -176,7 +187,7 @@ Total Value
 </div>
 
 <div class="modal-footer">
-<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+<button class="btn" style="background:#da45f1; color:white" data-bs-dismiss="modal">Close</button>
 <button class="btn btn-primary" onclick="updateItem()">Save</button>
 </div>
 
@@ -266,8 +277,8 @@ function render(){
             <td>${pricePerPack}</td>
             <td>₱${value.toFixed(2)}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="openEdit('${id}')">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="del('${id}')">Delete</button>
+                <button class="btn btn-sm" style="background:#da45f1; color:white" onclick="openEdit('${id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" style=" color:white" onclick="del('${id}')">Delete</button>
             </td>
         </tr>`;
     }

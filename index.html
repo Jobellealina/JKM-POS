@@ -18,20 +18,34 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-body { font-family:'Courier New', monospace; background:#ffe4e6; color:#111; transition:.3s; font-size:13px; margin:0; }
+body {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(
+    135deg,
+    #f9caca,
+    #fab8f6,
+    #f7c8c8,
+    #f7c7fc
+  );
+  color: #111;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  margin: 0;
+  min-height: 100vh;
+}
 body.dark { background:#0f172a; color:white; overflow-x:hidden; }
-.sidebar { height:100vh; overflow-y:auto; background:#0f172a; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
+.sidebar { height:100vh; overflow-y:auto; background:#9e04c4; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
 .sidebar a { color:white; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
-.sidebar a:hover { background:#1e40af; color:#fff; }
-.sidebar a.active { background:#3b82f6; color:white; font-weight:600; }
+.sidebar a:hover { background:#be08ec; color:#fff; }
+.sidebar a.active { background:#ce74f5; color:white; font-weight:600; }
 .sidebar .toggle-btn { margin-top:auto; }
 .card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
 body.dark .card { background:#1e293b; color:white; }
 input, select { transition:.3s; background:white; color:#111; font-size:13px; }
 body.dark input, body.dark select { background:#334155; color:white; border-color:#475569; }
 .btn-professional { width:83px; font-weight:600; border-radius:6px; padding:5px 0; color:white; text-align:center; transition:all .2s; font-size:13px; }
-.btn-blue { background:#2563eb; } .btn-red { background:#ef4444; } .btn-green { background:#22c55e; }
-.btn-blue:hover { background:#3b82f6; } .btn-red:hover { background:#f87171; } .btn-green:hover { background:#4ade80; }
+.btn-blue { background:#be08ec; } .btn-red { background:#ef4444; } .btn-green { background:#ea7f41; }
+.btn-blue:hover { background:#ce74f5 } .btn-red:hover { background:#f87171; } .btn-green:hover {  background:#ea7f41; }
 .print-area { width:105mm; padding:10px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
 body.dark .print-area { background:#1e293b; color:white; }
 .watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
@@ -65,7 +79,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
   text-align: left !important;
 }
 #quotationPreview table th {
-  color: #1e40af;
+  color: #be08ec;
 }
 </style>
 </head>
@@ -73,7 +87,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
   
 
 <div class="sidebar">
-<img src="logo1.png" class="mb-3 mx-auto" style="border-radius:10px; height:50px; width:50px;">
+<img src="logo.png" class="mb-3 mx-auto" style="border-radius:10px; height:50px; width:50px;">
 <h5 class="text-center mb-3">JKM Prime Digital Prints</h5><br>
 <nav class="nav flex-column" role="tablist">
 <a class="nav-link active" data-bs-toggle="tab" href="#dashboardTab"><i class="bi bi-speedometer2 fs-5"></i>Dashboard</span></a><br>
@@ -89,7 +103,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
   Tracker</span>
 </a>
 </nav><br>
-<button class="btn btn-primary toggle-btn mx-auto mt-3" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
+<button class="btn toggle-btn mx-auto mt-3" style="background:#ef9fed;" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
 </div>
 
 <!-- Main Content -->
@@ -101,16 +115,31 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
 
   <!-- Summary Cards -->
-  <div class="card p-3 bg-secondary text-white flex-fill" style="min-width: 150px;"><h6>Daily Sales</h6><h5>₱ <span id="dailySales">0</span></h5></div>
-  <div class="card p-3 bg-success text-white flex-fill" style="min-width: 150px;"><h6>Daily Profit</h6><h5>₱ <span id="dailyProfit">0</span></h5></div>
-  <div class="card p-3 bg-primary text-white flex-fill" style="min-width: 150px;"><h6>Monthly Sales</h6><h5>₱ <span id="monthlySales">0</span></h5></div>
-  <div class="card p-3 bg-danger text-white flex-fill" style="min-width: 150px;"><h6>Monthly Profit</h6><h5>₱ <span id="monthlyProfit">0</span></h5></div>
+  <div class="card p-3 text-white flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #d8b4fe, #a78bfa);">
+  <h6>Daily Sales</h6>
+  <h5>₱ <span id="dailySales">0</span></h5>
+</div>
+
+<div class="card p-3 text-white flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #fbbf24, #f97316);">
+  <h6>Daily Profit</h6>
+  <h5>₱ <span id="dailyProfit">0</span></h5>
+</div>
+
+<div class="card p-3 text-white flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #f87171, #dc2626); ">
+  <h6>Monthly Sales</h6>
+  <h5>₱ <span id="monthlySales">0</span></h5>
+</div>
+
+<div class="card p-3 text-dark flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #fde047, #facc15); ">
+  <h6>Monthly Profit</h6>
+  <h5>₱ <span id="monthlyProfit">0</span></h5>
+</div>
  
   <!-- Profit Split Cards -->
 <!-- Profit Split Cards with Gradient -->
 <!-- Profit & Maintenance Cards -->
 <div class="card p-3 text-white flex-fill" 
-     style="min-width: 140px; background: linear-gradient(135deg, #2563eb, #ef4444);">
+     style="min-width: 140px; background: linear-gradient(135deg, #e908e6, #cb84e5);">
   <h6>Profit Each</h6>
   <h5>₱ <span id="profitEach">0</span></h5>
   <p id="monthLabel" style="font-size:12px; margin-top:5px;"></p>
@@ -165,10 +194,10 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 </select>
 <input type="number" id="downpaymentAmount" placeholder="Downpayment Amount" class="form-control mb-1" style="display:none;">
 <div class="mt-2 d-flex gap-1 flex-wrap">
-<button class="btn btn-green btn-professional" onclick="saveReceipt()">Save</button>
-<button class="btn btn-green btn-professional" onclick="printReceipt()">Print</button>
-<button class="btn btn-red btn-professional" onclick="undoItem()">Undo</button>
-<button class="btn btn-blue btn-professional" onclick="downloadReceiptImage()">
+<button class="btn btn-professional"  style=" background:#e37dec;" onclick="saveReceipt()">Save</button>
+<button class="btn btn-professional" style=" background:#e37dec;"  onclick="printReceipt()">Print</button>
+<button class="btn btn-professional" style=" background:#e37dec;" onclick="undoItem()">Undo</button>
+<button class="btn btn-professional" style=" background:#e37dec;"  onclick="downloadReceiptImage()">
   Image
 </button>
 </div>
@@ -191,7 +220,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <div style="overflow-x:auto;">
 <table class="table table-sm" id="previewTable">
 <thead>
-<tr style="border-bottom: 1px solid #b5c6eb; border-top: 1px solid #b5c6eb;">
+<tr style="border-bottom: 1px solid #cd1cec; border-top: 1px solid #cd1cec;">
   <th>No</th>
   <th>Description</th>
   <th>Qty</th>
@@ -249,7 +278,7 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
     </select>
     <input type="number" id="invStock" placeholder="Stock" class="form-control mb-1">
     <input type="number" id="invUnitPrice" placeholder="Unit Price" class="form-control mb-1">
-    <button class="btn btn-green btn-professional" onclick="addInventoryItem()">Add Item</button>
+    <button class="btn btn-professional" style=" background:#e37dec;"  onclick="addInventoryItem()">Add Item</button>
     <table class="table table-sm mt-2">
       <thead>
         <tr><th>No</th><th>Item Name</th><th>Stock</th><th>Unit Price</th><th>Action</th></tr>
@@ -269,11 +298,11 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
 <input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
 <div class="mt-2 d-flex gap-2 flex-wrap">
-  <button class="btn btn-success btn-professional" onclick="addQuotationItem()">Add</button>
-  <button class="btn btn-warning btn-professional" onclick="removeLastItem()">Undo</button>
-  <button class="btn btn-danger btn-professional" onclick="clearQuotation()">Clear</button>
-  <button class="btn btn-primary btn-professional" onclick="generateQuotation()">Generate</button>
-  <button class="btn btn-danger btn-professional" onclick="downloadQuotationImage()">Image</button>
+  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="addQuotationItem()">Add</button>
+  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="removeLastItem()">Undo</button>
+  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="clearQuotation()">Clear</button>
+  <button class="btn btn-professional" style=" background:#e37dec;"   onclick="generateQuotation()">Generate</button>
+  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="downloadQuotationImage()">Image</button>
 </div>
 </div>
 </div>
