@@ -16,43 +16,132 @@ body {
   font-family: 'Courier New', monospace;
   background: linear-gradient(
     135deg,
-    #f9caca,
-    #fab8f6,
-    #f7c8c8,
-    #f7c7fc
+    #e8eaff,
+    #d6dcff,
+    #e3e8ff,
+    #c9d4ff
   );
-  color: #111;
+  color: #0b1b3a;
   transition: all 0.3s ease;
   font-size: 13px;
   margin: 0;
   min-height: 100vh;
 }
 
+/* ================= HEADER ================= */
 .headerBox{
-    background: #9e04c4;;
-    color:white;
-    border-radius:18px;
-    padding:20px;
-    margin-bottom:25px;
-    display:flex;
-    align-items:center;
-    gap:15px;
-    flex-wrap:wrap;
+    background: linear-gradient(90deg, #0b1b3a, #1f2a6b);
+    color: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
+/* ================= CARDS ================= */
 .card{
-    border:none;
-    border-radius:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    background: #ffffff;
+    color: #0b1b3a;
+    transition: 0.25s;
 }
 
+.card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* ================= TABLE ================= */
 .table thead{
-    background:#0d6efd;
-    color:white;
+    background: #0b1b3a;
+    color: white;
 }
 
-.low{ background:#ffd6d6 !important; }
-.critical{ background:#ffb3b3 !important; }
+.table tbody tr:hover{
+    background: rgba(11,27,58,0.06);
+}
+
+/* ================= BUTTON SYSTEM ================= */
+.btn{
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 12px;
+    transition: 0.2s;
+}
+
+/* PRIMARY BUTTON (MAIN COLOR REQUESTED) */
+.btn-primary,
+button,
+.btn-custom{
+    background: #521dbd;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover,
+button:hover,
+.btn-custom:hover{
+    background: #6a33e0;
+}
+
+/* OPTIONAL OTHER BUTTONS (CONSISTENT LOOK) */
+.btn-success{
+    background: #1f8a4c;
+    border: none;
+}
+
+.btn-success:hover{
+    background: #26a35b;
+}
+
+.btn-danger{
+    background: #b91c1c;
+    border: none;
+}
+
+.btn-danger:hover{
+    background: #dc2626;
+}
+
+.btn-warning{
+    background: #d97706;
+    color: white;
+    border: none;
+}
+
+.btn-warning:hover{
+    background: #f59e0b;
+}
+
+/* ================= STATUS COLORS ================= */
+.low{ 
+    background:#fff3cd !important; 
+    color:#7a5a00;
+}
+
+.critical{ 
+    background:#ffd6d6 !important; 
+    color:#7a0000;
+}
+
+/* ================= INPUT ================= */
+input, select, .form-control{
+    border-radius: 8px;
+    border: 1px solid #cbd5ff;
+    padding: 6px 10px;
+}
+
+input:focus, select:focus, .form-control:focus{
+    border-color: #521dbd;
+    box-shadow: 0 0 6px rgba(82,29,189,0.25);
+    outline: none;
+}
 
 </style>
 </head>
@@ -121,7 +210,7 @@ Total Value
 </div>
 
 <div class="col-md-2">
-<button class="btn w-100" style="background-color: #9e04c4; color: white;" onclick="addItem()">ADD</button>
+<button class="btn w-100" style="background-color: #521dbd; color: white;" onclick="addItem()">ADD</button>
 </div>
 
 </div>
@@ -187,7 +276,7 @@ Total Value
 </div>
 
 <div class="modal-footer">
-<button class="btn" style="background:#da45f1; color:white" data-bs-dismiss="modal">Close</button>
+<button class="btn" style="background:#521dbd; color:white" data-bs-dismiss="modal">Close</button>
 <button class="btn btn-primary" onclick="updateItem()">Save</button>
 </div>
 
@@ -277,7 +366,7 @@ function render(){
             <td>${pricePerPack}</td>
             <td>₱${value.toFixed(2)}</td>
             <td>
-                <button class="btn btn-sm" style="background:#da45f1; color:white" onclick="openEdit('${id}')">Edit</button>
+                <button class="btn btn-sm" style="background:#521dbd; color:white" onclick="openEdit('${id}')">Edit</button>
                 <button class="btn btn-sm btn-danger" style=" color:white" onclick="del('${id}')">Delete</button>
             </td>
         </tr>`;

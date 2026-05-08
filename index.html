@@ -22,64 +22,357 @@ body {
   font-family: 'Courier New', monospace;
   background: linear-gradient(
     135deg,
-    #f9caca,
-    #fab8f6,
-    #f7c8c8,
-    #f7c7fc
+    #e8eaff,
+    #d6dcff,
+    #e3e8ff,
+    #c9d4ff
   );
   color: #111;
   transition: all 0.3s ease;
   font-size: 13px;
   margin: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+html, body {
+  height: 100%;
+  overflow-y: auto;
+}
+
+body.dark {
+  background: #0f172a;
+  color: white;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  background: #19026b;
+  color: white;
+  font-size: 13px;
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  position: fixed;
+  left: 0;
+  top: 0;
+  transition: .3s;
+}
+
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: .2s;
+}
+
+.sidebar a:hover {
+  background: #19026b;
+}
+
+.sidebar a.active {
+  font-weight: 600;
+}
+
+/* ================= MAIN ================= */
+.main-content {
+  margin-left: 220px;
+  padding: 1rem;
   min-height: 100vh;
+  overflow-x: hidden;
 }
-body.dark { background:#0f172a; color:white; overflow-x:hidden; }
-.sidebar { height:100vh; overflow-y:auto; background:#9e04c4; color:white; font-size:13px; width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:1rem; position:fixed; left:0; top:0; transition:.3s; }
-.sidebar a { color:white; text-decoration:none; display:flex; align-items:center; gap:8px; padding:10px 15px; cursor:pointer; border-radius:4px; transition:.2s; }
-.sidebar a:hover { background:#be08ec; color:#fff; }
-.sidebar a.active { background:#ce74f5; color:white; font-weight:600; }
-.sidebar .toggle-btn { margin-top:auto; }
-.card { border-radius:10px; padding:15px; margin-bottom:15px; transition:.3s; background:white; color:#111; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:13px; }
-body.dark .card { background:#1e293b; color:white; }
-input, select { transition:.3s; background:white; color:#111; font-size:13px; }
-body.dark input, body.dark select { background:#334155; color:white; border-color:#475569; }
-.btn-professional { width:83px; font-weight:600; border-radius:6px; padding:5px 0; color:white; text-align:center; transition:all .2s; font-size:13px; }
-.btn-blue { background:#be08ec; } .btn-red { background:#ef4444; } .btn-green { background:#ea7f41; }
-.btn-blue:hover { background:#ce74f5 } .btn-red:hover { background:#f87171; } .btn-green:hover {  background:#ea7f41; }
-.print-area { width:105mm; padding:10px; border-radius:10px; background:white; position:relative; margin-bottom:20px; font-size:12px; }
-body.dark .print-area { background:#1e293b; color:white; }
-.watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.08; width:120px; pointer-events:none; }
-.table-sm th, .table-sm td { padding:2px 4px; font-size:11px; border:none; white-space: nowrap; text-align:center; }
-body.dark .table-sm th, body.dark .table-sm td { color:white; background:transparent; }
-.main-content { margin-left:220px; padding:1rem; min-height:100vh; }
-.history-table-wrapper{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.print-header p { margin-top:5px; margin-bottom:2px; text-align:left; }
-.print-header strong { display:block; text-align:center; }
+
+/* FIX TAB */
+.tab-content {
+  padding: 10px;
+}
+
+.tab-content > .tab-pane {
+  display: none;
+  min-height: auto;
+}
+
+.tab-content > .active {
+  display: block;
+}
+
+/* ================= CARDS ================= */
+.card {
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: white !important;
+  color: navy !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-size: 13px;
+}
+
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5,
+.card h6,
+.card p,
+.card span,
+.card small {
+  color: navy !important;
+  font-weight: 1000;
+}
+
+/* ================= INPUT ================= */
+input, select {
+  transition: .3s;
+  background: white;
+  color: #111;
+  font-size: 13px;
+}
+
+body.dark input,
+body.dark select {
+  background: #334155;
+  color: white;
+  border-color: #475569;
+}
+
+/* ================= BUTTONS ================= */
+.btn-professional {
+  width: 83px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 5px 0;
+  color: white;
+  text-align: center;
+  transition: all .2s;
+  font-size: 13px;
+}
+
+.btn-blue { background: #19026b; }
+.btn-red { background: #ef4444; }
+.btn-green { background: #ea7f41; }
+
+/* ================= PRINT ================= */
+.print-area {
+  width: 105mm;
+  padding: 10px;
+  border-radius: 10px;
+  background: white;
+  position: relative;
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+
+body.dark .print-area {
+  background: #1e293b;
+  color: white;
+}
+
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  opacity: 0.08;
+  width: 120px;
+  pointer-events: none;
+}
+
+/* ================= TABLE ================= */
+.table-sm th,
+.table-sm td {
+  padding: 2px 4px;
+  font-size: 11px;
+  border: none;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ================= HISTORY ================= */
+.history-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ================= GRID FIX ================= */
+.row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.col-md-2,
+.col-md-3,
+.col-md-4,
+.col-md-5,
+.col-md-6 {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* ================= KPI ================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.kpi-card {
+  padding: 15px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  transition: 0.2s;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ================= CHART FIX (IMPORTANT) ================= */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+  align-items: stretch;
+}
+
+/* BIG BAR CHART */
+.big-chart {
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.big-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 300px;
+}
+
+/* SMALL PIE CHART */
+.small-chart {
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+/* CENTER CANVAS BUT NOT LEGEND */
+.small-chart canvas {
+  width: 100% !important;
+  height: 240px !important;
+  max-width: 240px !important;
+  margin: 0 auto;
+}
+
+/* LEGEND FIX (IMPORTANT - HINDI CENTER) */
+.small-chart ul,
+.small-chart .chartjs-legend {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+/* ================= BOTTOM GRID ================= */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+}
+
+/* ================= MODAL ================= */
+.modal-left label {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.modal-left input,
+.modal-left select {
+  width: 100%;
+  font-size: 12px;
+  margin-top: 2px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.modal-left {
+  padding: 10px;
+}
+
+/* ================= PRINT ================= */
+@media print {
+  body * { visibility: hidden; }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 105mm;
+    font-size: 15px;
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-grid, .bottom-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* ================= MOBILE SIDEBAR ================= */
 @media(max-width:768px){
-.history-table-wrapper table{ min-width:600px; }
-.history-table-wrapper th, .history-table-wrapper td{ text-align:left !important; }
-.sidebar { width:80px; padding:0.5rem 0; }
-.sidebar a { justify-content:center; padding:10px 0; flex-direction:column; font-size:11px; }
-.sidebar h5 { display:none; }
-.sidebar img { display:block; width:50px; height:50px; margin:0 auto 10px; }
-.main-content { margin-left:80px; padding:0.5rem; }
-.card { font-size:12px; }
-.print-area { width:100%; padding:10px; font-size:11px; }
-.dashboard-columns .card { flex:1 1 100%; }
-}
-@media print { body * { visibility:hidden; } .print-area, .print-area * { visibility:visible; } .print-area { position:absolute; left:0; top:0; width:105mm; font-size:15px; } }
-.tab-content > .tab-pane { min-height: calc(100vh - 2rem); overflow-y:auto; }
-.modal-left label{display:block; font-size:12px; margin-top:5px; font-weight:500;}
-.modal-left input, .modal-left select{width:100%; font-size:12px; margin-top:2px; padding:6px; border-radius:6px; border:1px solid #ccc;}
-.modal-left .modal-footer{display:flex; justify-content:flex-start; gap:10px; padding:5px;}
-.modal-left {padding:10px;}
-.modal-left h5 {margin-bottom:10px; font-size:16px; text-align:left;}
-#quotationPreview table td,
-#quotationPreview table th {
-  text-align: left !important;
-}
-#quotationPreview table th {
-  color: #be08ec;
+  .sidebar {
+    width: 80px;
+    padding: 0.5rem 0;
+  }
+
+  .sidebar a {
+    justify-content: center;
+    padding: 10px 0;
+    flex-direction: column;
+    font-size: 11px;
+  }
+
+  .sidebar h5 { display: none; }
+
+  .main-content {
+    margin-left: 80px;
+    padding: 0.5rem;
+  }
+
+  .card { font-size: 12px; }
+
+  .print-area {
+    width: 100%;
+    font-size: 11px;
+  }
 }
 </style>
 </head>
@@ -106,243 +399,286 @@ body.dark .table-sm th, body.dark .table-sm td { color:white; background:transpa
 <button class="btn toggle-btn mx-auto mt-3" style="background:#ef9fed;" onclick="toggleDark()"><i class="bi bi-moon-stars-fill fs-5"></i></button>
 </div>
 
-<!-- Main Content -->
+<!-- MAIN CONTENT -->
 <div class="main-content">
-<div class="tab-content">
+  <div class="tab-content">
 
-<!-- Dashboard -->
+    <!-- ================= DASHBOARD ================= -->
 <div class="tab-pane fade show active" id="dashboardTab">
-<div class="dashboard-columns mb-3 d-flex flex-wrap gap-2">
 
-  <!-- Summary Cards -->
-  <div class="card p-3 text-white flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #d8b4fe, #a78bfa);">
-  <h6>Daily Sales</h6>
-  <h5>₱ <span id="dailySales">0</span></h5>
-</div>
+  <div class="kpi-grid mb-3">
 
-<div class="card p-3 text-white flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #fbbf24, #f97316);">
-  <h6>Daily Profit</h6>
-  <h5>₱ <span id="dailyProfit">0</span></h5>
-</div>
+    <div class="card kpi-card">
+      <h6><i class="bi bi-cash-coin"></i> Daily Sales</h6>
+      <h3>₱ <span id="dailySales">0</span></h3>
+    </div>
 
-<div class="card p-3 text-white flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #f87171, #dc2626); ">
-  <h6>Monthly Sales</h6>
-  <h5>₱ <span id="monthlySales">0</span></h5>
-</div>
+    <div class="card kpi-card">
+      <h6><i class="bi bi-graph-up-arrow"></i> Daily Profit</h6>
+      <h3>₱ <span id="dailyProfit">0</span></h3>
+    </div>
 
-<div class="card p-3 text-dark flex-fill" style="min-width: 150px; background: linear-gradient(135deg, #fde047, #facc15); ">
-  <h6>Monthly Profit</h6>
-  <h5>₱ <span id="monthlyProfit">0</span></h5>
-</div>
- 
-  <!-- Profit Split Cards -->
-<!-- Profit Split Cards with Gradient -->
-<!-- Profit & Maintenance Cards -->
-<div class="card p-3 text-white flex-fill" 
-     style="min-width: 140px; background: linear-gradient(135deg, #e908e6, #cb84e5);">
-  <h6>Profit Each</h6>
-  <h5>₱ <span id="profitEach">0</span></h5>
-  <p id="monthLabel" style="font-size:12px; margin-top:5px;"></p>
-</div>
+    <div class="card kpi-card">
+      <h6><i class="bi bi-calendar2-week"></i> Monthly Sales</h6>
+      <h3>₱ <span id="monthlySales">0</span></h3>
+    </div>
 
-<div class="card p-3 bg-info text-white flex-fill" style="min-width: 140px;">
-  <h6>Maintenance/Funds</h6>
-  <h5>₱ <span id="maintenanceShare">0</span></h5>
-  <p id="monthLabelMaint" style="font-size:12px; margin-top:5px;">
-    <!-- optional: month label here if needed -->
-  </p>
-</div>
+    <div class="card kpi-card">
+      <h6><i class="bi bi-graph-up"></i> Monthly Profit</h6>
+      <h3>₱ <span id="monthlyProfit">0</span></h3>
+    </div>
 
-</div>
+    <div class="card kpi-card">
+      <h6><i class="bi bi-wallet2"></i> Profit Each</h6>
+      <h3>₱ <span id="profitEach">0</span></h3>
+    </div>
 
-<!-- Charts Below -->
-<div class="d-flex gap-2 flex-wrap mb-3">
-  <div class="card p-3 flex-fill" style="min-width: 280px; height:400px;">
-    <h6>Sales Line Chart</h6>
-    <canvas id="salesLineChart" style="height:350px;"></canvas>
+    <div class="card kpi-card">
+      <h6><i class="bi bi-tools"></i> Maintenance</h6>
+      <h3>₱ <span id="maintenanceShare">0</span></h3>
+    </div>
+
   </div>
-  <div class="card p-3 flex-fill" style="min-width: 280px; height:400px;">
-    <h6>Sales Bar Chart</h6>
-    <canvas id="salesBarChart" style="height:350px;"></canvas>
+
+      <div class="chart-grid mb-3">
+
+        <div class="card big-chart">
+          <h6>Weekly Sales</h6>
+          <canvas id="salesBarChart"></canvas>
+        </div>
+
+        <div class="card small-chart">
+          <h6>Sales Distribution</h6>
+          <canvas id="salesLineChart"></canvas>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= RECEIPT ================= -->
+    <div class="tab-pane fade" id="receiptTab">
+
+      <div class="row">
+
+        <div class="col-md-6">
+          <div class="card p-3 mb-3">
+
+            <h5>Add Service</h5>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-5">
+                <select id="category" class="form-select"></select>
+                <select id="item" class="form-select"></select>
+              </div>
+
+              <div class="col-md-2">
+                <input type="number" id="qty" value="1" class="form-control">
+              </div>
+
+              <div class="col-md-3">
+                <input type="number" id="price" class="form-control">
+              </div>
+
+              <div class="col-md-2">
+                <button class="btn btn-primary" onclick="addItem()">Add</button>
+              </div>
+            </div>
+
+            <input type="text" id="custName" class="form-control mb-1" placeholder="Customer Name">
+            <input type="text" id="custAddress" class="form-control mb-1" placeholder="Address">
+
+            <select id="paymentMethod" class="form-select mb-1">
+              <option>Cash</option>
+              <option>GCash</option>
+              <option>Bank Transfer</option>
+            </select>
+
+            <select id="paymentType" class="form-select mb-1" onchange="toggleDownpayment()">
+              <option value="Full Payment">Full Payment</option>
+              <option value="Downpayment">Downpayment</option>
+            </select>
+
+            <input type="number" id="downpaymentAmount" class="form-control mb-1" style="display:none;">
+
+            <div class="d-flex gap-1 flex-wrap">
+              <button class="btn btn-success" onclick="saveReceipt()">Save</button>
+              <button class="btn btn-info" onclick="printReceipt()">Print</button>
+              <button class="btn btn-warning" onclick="undoItem()">Undo</button>
+              <button class="btn btn-secondary" onclick="downloadReceiptImage()">Image</button>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div id="receiptPreview" class="print-area">
+            <img src="Watermark.png" class="watermark">
+
+            <div class="text-center">
+              <img src="logo.png" width="60">
+              <h6>JKM PRIME DIGITAL PRINTS</h6>
+            </div>
+
+            <p>Name: <span id="rNamePrint"></span></p>
+            <p>Address: <span id="rAddressPrint"></span></p>
+            <p>Date: <span id="rDatePrint"></span></p>
+            <p>Receipt No: <span id="rNoPrint"></span></p>
+
+            <table class="table table-sm" id="previewTable">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="4" class="text-end">TOTAL</th>
+                  <th id="grandTotal">₱0</th>
+                </tr>
+              </tfoot>
+            </table>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= HISTORY ================= -->
+    <div class="tab-pane fade" id="historyTab">
+      <div class="card p-3">
+        <h5>Receipt History</h5>
+
+        <div class="row mb-2">
+          <div class="col-md-3">
+            <input type="date" id="fromDate" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <input type="date" id="toDate" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search">
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-primary" onclick="applyFilters()">Filter</button>
+          </div>
+        </div>
+
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Receipt</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Sales</th>
+              <th>Profit</th>
+              <th>Payment</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="receiptHistory"></tbody>
+        </table>
+
+      </div>
+    </div>
+
+    <!-- ================= INVENTORY ================= -->
+    <div class="tab-pane fade" id="inventoryTab">
+      <div class="card p-3">
+        <h5>Inventory</h5>
+
+        <select id="invCategory" class="form-select mb-1"></select>
+        <input type="number" id="invStock" class="form-control mb-1" placeholder="Stock">
+        <input type="number" id="invUnitPrice" class="form-control mb-1" placeholder="Price">
+
+        <button class="btn btn-primary" onclick="addInventoryItem()">Add Item</button>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Item</th>
+              <th>Stock</th>
+              <th>Price</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+
+      </div>
+    </div>
+
+    <!-- ================= QUOTATION ================= -->
+    <div class="tab-pane fade" id="quotationTab">
+
+      <div class="row">
+
+        <div class="col-md-6">
+          <div class="card p-3 mb-3">
+
+            <h5>Create Quotation</h5>
+
+            <input type="text" id="qCustName" class="form-control mb-1" placeholder="Customer Name">
+
+            <select id="qItemSelect" class="form-select mb-1"></select>
+
+            <input type="number" id="qQty" class="form-control mb-1" placeholder="Qty">
+            <input type="number" id="qUnitPrice" class="form-control mb-1" placeholder="Price">
+
+            <!-- ✅ BUTTONS FIXED (hindi na mawawala) -->
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <button class="btn btn-success" onclick="addQuotationItem()">Add</button>
+              <button class="btn btn-warning" onclick="removeLastItem()">Undo</button>
+              <button class="btn btn-danger" onclick="clearQuotation()">Clear</button>
+              <button class="btn btn-primary" onclick="generateQuotation()">Generate</button>
+              <button class="btn btn-secondary" onclick="downloadQuotationImage()">Image</button>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div id="quotationPreview" class="print-area">
+
+            <div class="text-center">
+              <img src="logo.png" width="60">
+              <h6>JKM PRIME DIGITAL PRINTS</h6>
+              <p>Quotation</p>
+            </div>
+
+            <p>Date: <span id="qDatePrint"></span></p>
+            <p>To: <span id="qNamePrint"></span></p>
+
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="quotationTable"></tbody>
+            </table>
+
+            <h6>Total: ₱ <span id="quotationGrandTotal">0</span></h6>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
-</div>
-</div>
-
-<!-- Add Receipt Tab -->
-<div class="tab-pane fade" id="receiptTab">
-<div class="row">
-<div class="col-md-6">
-<div class="card p-3 mb-3">
-<h5>Add Service</h5>
-<div class="row g-2 mb-2">
-<div class="col-md-5">
-  <select id="category" class="form-select"></select>
-  <select id="item" class="form-select"></select>
-</div>
-<div class="col-md-2"><input type="number" id="qty" value="1" class="form-control"></div>
-<div class="col-md-3"><input type="number" id="price" class="form-control"></div>
-<div class="col-md-2"><button class="btn btn-blue btn-professional" onclick="addItem()">Add</button></div>
-</div>
-<input type="text" placeholder="Customer Name" id="custName" class="form-control mb-1">
-<input type="text" placeholder="Address" id="custAddress" class="form-control mb-1">
-<select id="paymentMethod" class="form-select mb-1">
-<option>Cash</option><option>GCash</option><option>Bank Transfer</option>
-</select>
-<select id="paymentType" class="form-select mb-1" onchange="toggleDownpayment()">
-<option value="Full Payment">Full Payment</option>
-<option value="Downpayment">Downpayment</option>
-</select>
-<input type="number" id="downpaymentAmount" placeholder="Downpayment Amount" class="form-control mb-1" style="display:none;">
-<div class="mt-2 d-flex gap-1 flex-wrap">
-<button class="btn btn-professional"  style=" background:#e37dec;" onclick="saveReceipt()">Save</button>
-<button class="btn btn-professional" style=" background:#e37dec;"  onclick="printReceipt()">Print</button>
-<button class="btn btn-professional" style=" background:#e37dec;" onclick="undoItem()">Undo</button>
-<button class="btn btn-professional" style=" background:#e37dec;"  onclick="downloadReceiptImage()">
-  Image
-</button>
-</div>
-</div>
-</div>
-
-<div class="col-md-6">
-<div id="receiptPreview" class="print-area">
-<img src="Watermark.png" class="watermark">
-<div class="print-header mb-2">
-<img src="logo.png" width="50" class="d-block mx-auto">
-<strong>JKM PRIME DIGITAL PRINTS <br> Printing Services</strong><br>
-<p>Name: <span id="rNamePrint"></span></p>
-<p>Address: <span id="rAddressPrint"></span></p>
-<p>Date: <span id="rDatePrint"></span></p>
-<p>Receipt No.: <span id="rNoPrint"></span></p>
-<p>MOP: <span id="rPaymentPrint"></span></p>
-<p><span id="rPaymentTypePrint"></span></p>
-</div>
-<div style="overflow-x:auto;">
-<table class="table table-sm" id="previewTable">
-<thead>
-<tr style="border-bottom: 1px solid #cd1cec; border-top: 1px solid #cd1cec;">
-  <th>No</th>
-  <th>Description</th>
-  <th>Qty</th>
-  <th>Price</th>
-  <th>Amount</th>
-</tr>
-</thead>
-<tbody><tr style="height:7px;"></tr></tbody><br>
-<tfoot>
-  <tr style="height:25px;"></tr> <!-- small spacing before TOTAL -->
-  <tr>
-    <th colspan="4" style="text-align:right;">TOTAL</th>
-    <th id="grandTotal">₱0</th>
-  </tr>
-</tfoot>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- History Tab -->
-<div class="tab-pane fade" id="historyTab">
-<div class="card p-3">
-<h5 style="color:#7995f2;">Receipt History</h5>
-<div class="row mb-2">
-<div class="col-md-3"><input type="date" id="fromDate" class="form-control" placeholder="From Date"></div>
-<div class="col-md-3"><input type="date" id="toDate" class="form-control" placeholder="To Date"></div>
-<div class="col-md-3"><input type="text" id="searchInput" class="form-control" placeholder="Search Name or Receipt No."></div>
-<div class="col-md-3"><button class="btn btn-blue btn-professional" onclick="applyFilters()">Filter</button></div>
-</div>
-<div class="history-table-wrapper">
-<table class="table table-sm" id="historyTable">
-<thead>
-<tr>
-<th>No</th><th>Receipt</th><th>Date</th><th>Customer</th><th>Sales</th><th>Profit</th><th>Payment Type</th><th>Action</th>
-</tr>
-</thead>
-<tbody id="receiptHistory"></tbody>
-</table>
-</div>
-<div class="mb-2">
-<button class="btn btn-blue btn-professional" onclick="exportToExcel()">Excel</button>
-<button class="btn btn-danger btn-professional" onclick="exportToPDF()">PDF</button>
-</div>
-</div>
-</div>
-<!-- Tab content -->
-<div class="tab-pane fade" id="inventoryTab">
-  <div class="card p-3">
-    <h5>Inventory Management</h5>
-    <select id="invCategory" class="form-select mb-1">
-      <option value="">Select Item</option>
-    </select>
-    <input type="number" id="invStock" placeholder="Stock" class="form-control mb-1">
-    <input type="number" id="invUnitPrice" placeholder="Unit Price" class="form-control mb-1">
-    <button class="btn btn-professional" style=" background:#e37dec;"  onclick="addInventoryItem()">Add Item</button>
-    <table class="table table-sm mt-2">
-      <thead>
-        <tr><th>No</th><th>Item Name</th><th>Stock</th><th>Unit Price</th><th>Action</th></tr>
-      </thead>
-      <tbody id="inventoryBody"></tbody>
-    </table>
-  </div>
-</div>
-<!-- Quotation Tab -->
-<div class="tab-pane fade" id="quotationTab">
-<div class="row">
-<div class="col-md-6">
-<div class="card p-3 mb-3">
-<h5>Create Quotation</h5>
-<input type="text" placeholder="Customer Name" id="qCustName" class="form-control mb-1">
-<select id="qItemSelect" class="form-select mb-1"></select>
-<input type="number" placeholder="Quantity" id="qQty" class="form-control mb-1">
-<input type="number" placeholder="Unit Price" id="qUnitPrice" class="form-control mb-1">
-<div class="mt-2 d-flex gap-2 flex-wrap">
-  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="addQuotationItem()">Add</button>
-  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="removeLastItem()">Undo</button>
-  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="clearQuotation()">Clear</button>
-  <button class="btn btn-professional" style=" background:#e37dec;"   onclick="generateQuotation()">Generate</button>
-  <button class="btn btn-professional" style=" background:#e37dec;"  onclick="downloadQuotationImage()">Image</button>
-</div>
-</div>
-</div>
-<div class="col-md-6">
-<div id="quotationPreview" class="print-area">
-<img src="Watermark.png" class="watermark">
-<div class="text-center mb-2">
-<img src="logo.png" width="60"><br>
-<strong>JKM PRIME DIGITAL PRINTS</strong><br>
-Quotation for Order
-</div>
-<br>
-<p>Date: <span id="qDatePrint"></span></p>
-<p>To: <span id="qNamePrint"></span></p>
-<div style="overflow-x:auto;">
-<table class="table table-sm">
-<thead>
-<tr>
-<th>Item</th>
-<th>Qty</th>
-<th>Unit Price</th>
-<th>Total</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="quotationTable"></tbody>
-</table>
-</div>
-
-<div class="text-end">
-<strong>Total: ₱ <span id="quotationGrandTotal">0.00</span></strong>
-</div>
-
-<p id="quotationNotes"></p>
-</div>
-</div>
-</div>
-</div>
-
-</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -377,6 +713,48 @@ function fetchHistoryFromFirebase(){
   });
 }
 
+function getCategoryTotals() {
+  let totals = {
+    "Photo Print": 0,
+    "Printing": 0,
+    "Shirts": 0,
+    "Mugs": 0,
+    "Notebook": 0,
+    "Others": 0
+  };
+
+  if (!receiptHistory) return totals;
+
+  receiptHistory.forEach(r => {
+    if (!r.items) return;
+
+    r.items.forEach(item => {
+      let name = (item.name || "").toLowerCase();
+      let total = (item.qty || 0) * (item.price || 0);
+
+      if (name.includes("photo") || name.includes("wallet") || name.includes("3r") || name.includes("4r")) {
+        totals["Photo Print"] += total;
+      }
+      else if (name.includes("print") || name.includes("document")) {
+        totals["Printing"] += total;
+      }
+      else if (name.includes("shirt") || name.includes("t-shirt")) {
+        totals["Shirts"] += total;
+      }
+      else if (name.includes("mug")) {
+        totals["Mugs"] += total;
+      }
+      else if (name.includes("notebook") || name.includes("planner")) {
+        totals["Notebook"] += total;
+      }
+      else {
+        totals["Others"] += total;
+      }
+    });
+  });
+
+  return totals;
+}
 // Call this after Firebase initialization
 fetchHistoryFromFirebase();
 
@@ -601,12 +979,15 @@ function deleteReceiptFromFirebase(rno){
 
 function fetchReceiptsFromFirebase(){
   const ref = db.ref('receipts');
-  ref.on('value', snapshot=>{
+
+  ref.on('value', snapshot => {
     const data = snapshot.val() || {};
+
     receiptHistory = Object.values(data);
-    localStorage.setItem("receiptHistory", JSON.stringify(receiptHistory));
-    updateHistory();
-    updateDashboard();
+
+    console.log("Loaded receipts:", receiptHistory); // DEBUG
+
+    updateDashboard();   // 👈 IMPORTANT DITO LANG
   });
 }
 // Save Receipt
@@ -919,11 +1300,11 @@ function updateDashboard(){
   document.getElementById("monthlyProfit").innerText = monthlyProfit;
 
   // 💰 Split monthly profit
-// 26% Profit for makmak
+//Profit for makmak
 const profitEach = Math.round(monthlyProfit * 0.26);
 document.getElementById("profitEach").innerText = profitEach;
 
-// Maintenance 10%
+
 const maintenanceShare = Math.round(monthlyProfit * 0.14);
 document.getElementById("maintenanceShare").innerText = maintenanceShare;
 
@@ -931,18 +1312,75 @@ document.getElementById("maintenanceShare").innerText = maintenanceShare;
 }
 
 // Render Charts (line & bar)
-let barChartInstance,lineChartInstance;
-function renderCharts(){
-  let barCtx=document.getElementById("salesBarChart").getContext("2d");
-  let lineCtx=document.getElementById("salesLineChart").getContext("2d");
-  let labels=[],data=[];
-  receiptHistory.forEach(r=>{labels.push(r.date); data.push(r.total);});
-  if(barChartInstance) barChartInstance.destroy();
-  if(lineChartInstance) lineChartInstance.destroy();
-  barChartInstance=new Chart(barCtx,{type:'bar',data:{labels:labels,datasets:[{label:'Sales',data:data,backgroundColor:'#2563eb'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
-  lineChartInstance=new Chart(lineCtx,{type:'line',data:{labels:labels,datasets:[{label:'Sales Trend',data:data,borderColor:'#22c55e',fill:false,tension:0.3}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
-}
+let barChartInstance, pieChartInstance;
 
+function renderCharts() {
+
+  // DATA PREP
+  let labels = [];
+  let data = [];
+
+  receiptHistory.forEach(r => {
+    labels.push(r.date);
+    data.push(Number(r.total) || 0);
+  });
+
+  // DESTROY OLD CHARTS
+  if (barChartInstance) barChartInstance.destroy();
+  if (pieChartInstance) pieChartInstance.destroy();
+
+  // ======================
+  // 🥧 PIE CHART (MAIN)
+  // ======================
+  pieChartInstance = new Chart(document.getElementById("salesLineChart"), {
+    type: 'pie',
+    data: {
+      labels: ['Printing', 'Binding', 'Laminating', 'Others'],
+      datasets: [{
+        data: [
+          data.reduce((a,b)=>a+b,0) * 0.4,
+          data.reduce((a,b)=>a+b,0) * 0.25,
+          data.reduce((a,b)=>a+b,0) * 0.2,
+          data.reduce((a,b)=>a+b,0) * 0.15
+        ],
+        backgroundColor: ['#4e73df','#1cc88a','#36b9cc','#f6c23e']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  // ======================
+  // 📊 SMALL BAR CHART
+  // ======================
+  barChartInstance = new Chart(document.getElementById("salesBarChart"), {
+    type: 'bar',
+    data: {
+      labels: labels.slice(-7), // last 7 days
+      datasets: [{
+        label: 'Sales',
+        data: data.slice(-7),
+        backgroundColor: '#4e73df',
+        borderRadius: 6,
+        barThickness: 18
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 document.getElementById("monthLabel").innerText = monthNames[today.getMonth()] + " " + today.getFullYear();
 
@@ -1231,6 +1669,7 @@ function downloadReceiptImage() {
     Swal.fire("Error", "Failed to download receipt image", "error");
   });
 }
+
 </script>
 </body>
 </html>
