@@ -517,7 +517,7 @@ body.dark .print-area {
 
             <div class="text-center">
               <img src="logo.png" width="60">
-              <h6>JKM PRIME DIGITAL PRINTS</h6>
+              <h6 style="font-weight: 1000;">JKM PRIME DIGITAL PRINTS</h6>
             </div>
 
             <p>Name: <span id="rNamePrint"></span></p>
@@ -534,7 +534,7 @@ body.dark .print-area {
                   <th>Price</th>
                   <th>Total</th>
                 </tr>
-              </thead>
+              </thead><br>
               <tbody></tbody>
               <tfoot>
                 <tr>
@@ -645,34 +645,65 @@ body.dark .print-area {
           </div>
         </div>
 
-        <div class="col-md-6">
-          <div id="quotationPreview" class="print-area">
+    <div class="col-md-6">
+  <div id="quotationPreview" class="print-area">
 
-            <div class="text-center">
-              <img src="logo.png" width="60">
-              <h6>JKM PRIME DIGITAL PRINTS</h6>
-              <p>Quotation</p>
-            </div>
+    <!-- HEADER -->
+    <div class="text-center mb-2">
+      <img src="logo.png" width="60">
+      <h6 class="mt-2" style="font-weight: 1000;">JKM PRIME DIGITAL PRINTS</h6>
+      <small>Quotation</small>
+    </div>
 
-            <p>Date: <span id="qDatePrint"></span></p>
-            <p>To: <span id="qNamePrint"></span></p>
+    <!-- META -->
+    <p><strong>Date:</strong> <span id="qDatePrint"></span></p>
+    <p><strong>To:</strong> <span id="qNamePrint"></span></p>
+    <br>
 
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Qty</th>
-                  <th>Price</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody id="quotationTable"></tbody>
-            </table>
+    <!-- TABLE -->
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="quotationTable"></tbody>
+    </table>
+<br>
+    <!-- TOTAL -->
+    <h6 class="text-end mt-2" style="font-weight: 1000; color: navy;">
+      Total: ₱ <span id="quotationGrandTotal">0</span>
+    </h6>
 
-            <h6>Total: ₱ <span id="quotationGrandTotal">0</span></h6>
+ <br><br><br>
 
-          </div>
-        </div>
+    <!-- MESSAGE -->
+    <p>
+  Thank you for choosing <strong style="font-weight:900; letter-spacing:1px;">
+    JKM PRIME DIGITAL PRINTS
+  </strong>.
+  This quotation includes the items listed above.
+</p>
+
+    <!-- TERMS -->
+    <p><strong>Terms & Conditions:</strong></p>
+    <ul style="padding-left: 18px; font-size: 12px;">
+      <li>50% downpayment required to confirm order</li>
+      <li>Remaining balance upon delivery / pick-up</li>
+      <li>Production starts after downpayment</li>
+    </ul>
+
+    <!-- SIGNATURE -->
+    <p class="mt-3">
+      Sincerely,<br>
+      <strong>JKM PRIME DIGITAL PRINTS</strong>
+    </p>
+
+  </div>
+</div>
 
       </div>
 
@@ -784,6 +815,7 @@ let services = {
   ],
 
   "Customized T-Shirt":[
+    {name:"XS",price:260},
     {name:"Small",price:280},
     {name:"Medium",price:280},
     {name:"Large",price:280},
@@ -791,7 +823,8 @@ let services = {
   ],
 
   "Customized Mug":[
-    {name:"White Mug",price:150},
+    {name:"White Mug no Box",price:90},
+    {name:"White Mug w/Box",price:120},
     {name:"Magic Mug",price:200}
   ],
 
@@ -802,7 +835,12 @@ let services = {
   
   "Customized Ref Magnets":[
     {name:"ATM size",price:25},
-    {name:"3x3",price:45}
+    {name:"3x3",price:45},
+    {name:"3R",price:50},
+    {name:"4R",price:60},
+    {name:"5R",price:70},
+     {name:"Custom Size",price:80},
+
   ],
 
   "Customized Totebag":[
@@ -822,6 +860,12 @@ let services = {
     {name:"M 6x5",price:79},
     {name:"L 8x6",price:89},
     
+  ],
+
+  "Customized Badge":[
+    {name:"Ref Magnet",price:45},
+    {name:"Ref Pin",price:45},
+    {name:"Ref Mirrot",price:45},  
   ],
 
   "Others":[
@@ -1335,7 +1379,7 @@ function renderCharts() {
   pieChartInstance = new Chart(document.getElementById("salesLineChart"), {
     type: 'pie',
     data: {
-      labels: ['Printing', 'Binding', 'Laminating', 'Others'],
+      labels: ['Printing', 'Notebooks', 'Shirts', 'Mugs', 'Magnets' , 'Others'],
       datasets: [{
         data: [
           data.reduce((a,b)=>a+b,0) * 0.4,
