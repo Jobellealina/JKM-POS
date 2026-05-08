@@ -1376,27 +1376,38 @@ function renderCharts() {
   // ======================
   // 🥧 PIE CHART (MAIN)
   // ======================
-  pieChartInstance = new Chart(document.getElementById("salesLineChart"), {
-    type: 'pie',
-    data: {
-      labels: ['Printing', 'Notebooks', 'Shirts', 'Mugs', 'Magnets' , 'Others'],
-      datasets: [{
-        data: [
-          data.reduce((a,b)=>a+b,0) * 0.4,
-          data.reduce((a,b)=>a+b,0) * 0.25,
-          data.reduce((a,b)=>a+b,0) * 0.2,
-          data.reduce((a,b)=>a+b,0) * 0.15
-        ],
-        backgroundColor: ['#4e73df','#1cc88a','#36b9cc','#f6c23e']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
+pieChartInstance = new Chart(document.getElementById("salesLineChart"), {
+  type: 'pie',
+  data: {
+    labels: ['Printing', 'Notebooks', 'Shirts', 'Mugs', 'Magnets', 'Others'],
+    datasets: [{
+      data: [
+        data.reduce((a,b)=>a+b,0) * 0.30,
+        data.reduce((a,b)=>a+b,0) * 0.20,
+        data.reduce((a,b)=>a+b,0) * 0.18,
+        data.reduce((a,b)=>a+b,0) * 0.12,
+        data.reduce((a,b)=>a+b,0) * 0.10,
+        data.reduce((a,b)=>a+b,0) * 0.10
+      ],
+      backgroundColor: [
+        '#c7d2fe',
+        '#bbf7d0',
+        '#bae6fd',
+        '#fde68a',
+        '#fecaca',
+        '#e9d5ff'
+      ],
+      borderColor: '#ffffff',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' }
     }
-  });
+  }
+});
 
   // ======================
   // 📊 SMALL BAR CHART
